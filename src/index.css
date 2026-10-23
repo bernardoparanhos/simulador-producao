@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens de identidade do projeto.
+ * Tailwind v4 lê este bloco e gera as utilidades correspondentes
+ * (ex.: --color-grafite-700 vira bg-grafite-700, text-grafite-700...).
+ * Mudar a identidade visual do simulador começa aqui.
+ */
+@theme {
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  /* Neutros institucionais */
+  --color-grafite-50: oklch(0.985 0.002 250);
+  --color-grafite-100: oklch(0.96 0.003 250);
+  --color-grafite-200: oklch(0.91 0.004 250);
+  --color-grafite-400: oklch(0.66 0.012 250);
+  --color-grafite-600: oklch(0.45 0.018 250);
+  --color-grafite-800: oklch(0.28 0.02 250);
+  --color-grafite-900: oklch(0.2 0.02 250);
+
+  /* Acento: usado em ações, destaques e séries primárias de gráfico */
+  --color-acento-500: oklch(0.62 0.16 250);
+  --color-acento-600: oklch(0.54 0.16 250);
+}
+
+@layer base {
+  body {
+    @apply bg-grafite-50 text-grafite-900 font-sans antialiased;
+  }
+}
