@@ -65,6 +65,8 @@ porque o fluxograma da planilha estava vazio).
 | D-10 | O descanso é esquecimento da planilha, ou já está embutido em outro desconto? | [fase-2.md](fases/fase-2.md) |
 | D-13, D-4 | A inspeção está toda inerte: três parâmetros preenchidos, nenhum afeta número | [fase-2.md](fases/fase-2.md) |
 | D-14 | Unidade dos campos de inspeção: `%` inteiro ou fração? | [fase-2.md](fases/fase-2.md) |
-| D-16 | Tempo de inspeção por peça: a tela pede segundos, o modelo guarda minutos | [fase-3.md](fases/fase-3.md) |
-| D-17 | O rótulo "Demanda diária" não acompanha a periodicidade escolhida | [fase-3.md](fases/fase-3.md) |
 | D-7 | Falta renomear `producaoRealizadaDiaria`, que ficou com o sufixo antigo | [fase-2.md](fases/fase-2.md) |
+
+Resolvidas depois da Fase 3: **D-16** (a conversão de segundos para minutos
+ficou na fronteira `cenarioDoFormulario`) e **D-17** (o rótulo da demanda
+acompanha a periodicidade escolhida).

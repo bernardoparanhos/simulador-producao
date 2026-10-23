@@ -18,12 +18,38 @@ import { HeaderSimulador } from '@/components/HeaderSimulador'
 import { tempoDisponivelPorTurnoMin, useCenario } from '@/state'
 import type { Periodicidade } from '@/types'
 
-/** As opções do campo de periodicidade, com os rótulos que a tela mostra. */
-const PERIODICIDADES: readonly { valor: Periodicidade; texto: string }[] = [
-  { valor: 'Diario', texto: 'Diário' },
-  { valor: 'Semanal', texto: 'Semanal' },
-  { valor: 'Mensal', texto: 'Mensal' },
+/**
+ * As opções do campo de periodicidade.
+ *
+ * Cada uma carrega também o rótulo do campo de demanda, porque os dois textos
+ * precisam concordar: a demanda é lida na base de tempo escolhida aqui, e um
+ * rótulo fixo "Demanda diária" mentiria assim que alguém escolhesse Semanal
+ * (divergência D-17). Mantidos juntos para não haver como mudar um e esquecer
+ * o outro.
+ */
+const PERIODICIDADES: readonly {
+  valor: Periodicidade
+  texto: string
+  rotuloDemanda: string
+}[] = [
+  { valor: 'Diario', texto: 'Diário', rotuloDemanda: 'Demanda diária (un.)' },
+  { valor: 'Semanal', texto: 'Semanal', rotuloDemanda: 'Demanda semanal (un.)' },
+  { valor: 'Mensal', texto: 'Mensal', rotuloDemanda: 'Demanda mensal (un.)' },
 ]
+
+/**
+ * O rótulo do campo de demanda para a periodicidade escolhida.
+ *
+ * O caso de nenhuma correspondência não acontece — `Periodicidade` é uma união
+ * fechada e a lista cobre as três —, mas o rótulo genérico evita um campo sem
+ * nome caso uma periodicidade nova entre no modelo antes de entrar aqui.
+ */
+function rotuloDaDemanda(periodicidade: Periodicidade): string {
+  return (
+    PERIODICIDADES.find((opcao) => opcao.valor === periodicidade)?.rotuloDemanda ??
+    'Demanda (un.)'
+  )
+}
 
 export function CenarioPage() {
   const navigate = useNavigate()
@@ -55,7 +81,7 @@ export function CenarioPage() {
 
               <div className="space-y-4">
                 <CampoNumero
-                  rotulo="Demanda diária (un.)"
+                  rotulo={rotuloDaDemanda(formulario.periodicidade)}
                   valor={formulario.demanda}
                   aoAlterar={(valor) => alterarCampo('demanda', valor)}
                   minimo={0}

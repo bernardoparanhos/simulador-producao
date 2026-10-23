@@ -8,8 +8,10 @@
 
 import { Link } from 'react-router-dom'
 
-import fotoPredio from '@/assets/capas/campus-predio.png'
-import fotoVistaAerea from '@/assets/capas/campus-vista-aerea.png'
+// WebP a 1920 px: as duas fotos somavam 5,5 MB em PNG e agora somam 530 kB.
+// Os PNG originais continuam no repositório, como fonte para reconversões.
+import fotoPredio from '@/assets/capas/campus-predio.webp'
+import fotoVistaAerea from '@/assets/capas/campus-vista-aerea.webp'
 import { MarcaInstitucional } from '@/components/MarcaInstitucional'
 
 export function EntradaPage() {

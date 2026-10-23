@@ -116,29 +116,30 @@ Registradas em [0004 — Camada de tela](../decisoes/0004-camada-de-tela.md):
 
 ## Divergências
 
-Duas novas, ambas vindas dos frames aprovados.
+Duas novas, ambas vindas dos frames aprovados, e ambas **resolvidas** num
+ajuste posterior à entrega da fase.
 
-### D-16. A tela pede o tempo de inspeção em segundos; o modelo guarda minutos
+### D-16. A tela pede o tempo de inspeção em segundos; o modelo guarda minutos — **RESOLVIDA**
 
 O frame mostra "Tempo por peça (s)" com `6,5`. O campo do modelo é
 `inspecao.tempoPorPecaMin`, em minutos.
 
-A conversão acontece em `cenarioDoFormulario` (`segundos / 60`), e o formulário
-guarda o valor em segundos, que é o que a pessoa digitou. Não afeta número
-nenhum hoje, porque a inspeção não entra em cálculo algum (divergência D-13) —
-mas afeta assim que entrar.
+A fronteira fica em `cenarioDoFormulario`, que divide por 60 — com comentário
+no ponto exato da conversão. O formulário guarda segundos, que é o que a pessoa
+digitou; o motor recebe minutos, que é o que o modelo documenta.
 
-**A decidir:** o campo do modelo deveria ser `tempoPorPecaSeg`? A planilha usa
-qual unidade?
+Não afeta número nenhum hoje, porque a inspeção não entra em cálculo algum
+(divergência D-13) — mas a conversão já está no lugar certo para quando entrar.
 
-### D-17. O rótulo "Demanda diária" não acompanha a periodicidade
+### D-17. O rótulo "Demanda diária" não acompanha a periodicidade — **RESOLVIDA**
 
 O frame rotula o campo como "Demanda diária (un.)", mas o campo ao lado deixa
 escolher a periodicidade. Com `'Semanal'` ou `'Mensal'` selecionado, o rótulo
-passa a mentir.
+passava a mentir.
 
-Implementado como no frame. **A decidir:** o rótulo muda junto com a
-periodicidade ("Demanda semanal", "Demanda mensal"), ou vira só "Demanda (un.)"?
+O rótulo agora acompanha a escolha: *Demanda diária*, *Demanda semanal* ou
+*Demanda mensal*. Os três textos moram na mesma lista que alimenta o select, de
+modo que não há como mudar um e esquecer o outro.
 
 ### Divergências anteriores que a tela torna visíveis
 
@@ -157,6 +158,7 @@ periodicidade ("Demanda semanal", "Demanda mensal"), ou vira só "Demanda (un.)"
 | `npm test` | ✅ 49 passando — nenhum teste foi tocado |
 | `npm run lint` | ✅ oxlint sem apontamentos |
 | Três telas conferidas contra os frames DP-1 | ✅ capturadas em `localhost` |
+| Fotos do campus em WebP | ✅ 5,5 MB → 530 kB, sem perda visível |
 | Indicador de tempo disponível | ✅ 398 min com os valores iniciais, igual ao frame |
 | Cenário sobrevive à navegação e ao recarregar | ✅ `localStorage` |
 
@@ -164,9 +166,8 @@ periodicidade ("Demanda semanal", "Demanda mensal"), ou vira só "Demanda (un.)"
 
 | Pendência | De quem | Observação |
 | --- | --- | --- |
-| Decidir D-16 (segundos ou minutos) e D-17 (rótulo da demanda) | responsável do projeto | Nenhuma trava a Fase 4 |
-| Otimizar as fotos do campus | responsável do projeto | As duas somam ~5,7 MB e a tela de entrada carrega as duas. Converter para WebP a 1920 px resolveria; os originais ficam no repositório |
 | Renomear `producaoRealizadaDiaria` | responsável do projeto | Fecha a D-7, que ficou pela metade |
+| Símbolo do curso em PNG de 1 MB | responsável do projeto | `logos/eng-producao.png` é exibido a 48 px de altura e pesa 1,03 MB — é hoje o arquivo mais pesado do build. Um SVG do manual de identidade resolveria de vez |
 | Tela de Atividades e **Parada P2** | Fase 4 | A P2 precisa de atividades para o motor devolver número |
 
 ## Não entra nesta fase (confirmando o escopo)

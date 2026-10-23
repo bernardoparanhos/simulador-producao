@@ -139,6 +139,7 @@ export function cenarioDoFormulario(formulario: FormularioCenario): Cenario {
     periodicidade: formulario.periodicidade,
     inspecao: {
       porcentagemInspecionada: formulario.porcentagemInspecionada,
+      // D-16: campo em segundos no form; motor espera minutos → ÷ 60
       tempoPorPecaMin: formulario.tempoInspecaoPorPecaSeg / 60,
       minimoAprovacao: formulario.minimoAprovacao,
     },

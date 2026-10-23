@@ -11,8 +11,9 @@ qualquer imagem importada pelo código React.
 | `logos/utfpr.svg` | cartão da marca, nas três telas |
 | `logos/eng-producao.png` | cartão da marca, ao lado da UTFPR |
 | `logos/utfpr-banner.png` | ainda sem uso |
-| `capas/campus-vista-aerea.png` | metade direita da tela de entrada, acima |
-| `capas/campus-predio.png` | metade direita da tela de entrada, abaixo |
+| `capas/campus-vista-aerea.webp` | metade direita da tela de entrada, acima |
+| `capas/campus-predio.webp` | metade direita da tela de entrada, abaixo |
+| `capas/*.png` | os originais das duas fotos; ficam como fonte, não entram no build |
 | `manual-de-identidade.pdf` | referência; não entra no build |
 
 Os nomes foram normalizados na Fase 3 para a convenção descrita abaixo — os
@@ -53,10 +54,24 @@ import logoUtfpr from '@/assets/logos/utfpr-horizontal.svg'
 
 ## Peso dos arquivos
 
-As duas fotos do campus somam cerca de **5,7 MB**, e a tela de entrada carrega
-as duas. Convertê-las para WebP a 1920 px de largura cortaria isso para alguns
-centenas de kB sem diferença visível — vale fazer antes de o link ir para o
-professor. Os originais ficam no repositório de qualquer forma.
+As fotos do campus são servidas em **WebP a 1920 px**: as duas somavam 5,5 MB
+em PNG e agora somam 530 kB, sem diferença visível. Os PNG originais ficam no
+repositório como fonte — só os `.webp` são importados pelo código, então apenas
+eles entram no build.
+
+Para regerar, com `ffmpeg`:
+
+```bash
+ffmpeg -i entrada.png -vf "scale='min(1920,iw)':-1:flags=lanczos" \
+       -c:v libwebp -quality 85 -compression_level 6 saida.webp
+```
+
+A foto aérea usa qualidade 80 em vez de 85: tem muito detalhe fino e, a 85,
+passava de 300 kB.
+
+**Ainda pesado:** `logos/eng-producao.png` tem 1,03 MB e é exibido a 48 px de
+altura — hoje é o maior arquivo do build. O ideal é um SVG do manual de
+identidade; um WebP pequeno resolve enquanto isso.
 
 ## Cores
 
