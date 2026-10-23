@@ -92,7 +92,7 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   const global = calcularGlobais(isolados, cenario, tempoDisponivelMin)
 
   const porAtividade: ResultadoPorAtividade[] = isolados.map((isolado) => {
-    const producaoRealizadaDiaria = producaoPor.get(isolado.atividadeId) ?? isolado.capacidadeDiaria
+    const producaoRealizadaDiaria = producaoPor.get(isolado.atividadeId) ?? isolado.capacidadePeriodo
 
     return {
       ...isolado,

@@ -11,7 +11,7 @@
  *
  * ```text
  * producaoRealizadaDiaria[a] = min(
- *   capacidadeDiaria[a],
+ *   capacidadePeriodo[a],
  *   producaoRealizadaDiaria[p] para toda predecessora direta p de a
  * )
  * ```
@@ -71,7 +71,7 @@ function chaveConexao(origem: AtividadeId, destino: AtividadeId): string {
  *   tem significado de domínio — detectar e barrar ciclos é trabalho da
  *   validação, na camada de entrada.
  *
- * @param resultados Resultados isolados das atividades, já com `capacidadeDiaria`.
+ * @param resultados Resultados isolados das atividades, já com `capacidadePeriodo`.
  * @param sequencia O fluxo: nós e conexões.
  * @returns Produção realizada por atividade, em unidades por período.
  */
@@ -80,7 +80,7 @@ export function propagarGargalo(
   sequencia: Sequencia,
 ): Map<AtividadeId, number> {
   const capacidadePor = new Map<AtividadeId, number>(
-    resultados.map((r) => [r.atividadeId, r.capacidadeDiaria]),
+    resultados.map((r) => [r.atividadeId, r.capacidadePeriodo]),
   )
 
   const predecessorasDe = new Map<AtividadeId, AtividadeId[]>()

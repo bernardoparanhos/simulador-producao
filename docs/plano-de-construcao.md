@@ -6,44 +6,6 @@ Oct 23, 2026 · @Bernardo
 
 Mapa do projeto, do início ao fim, com as paradas de teste. É daqui que saem os prompts para o Claude Code desenvolver.
 
-## Estado da construção
-
-Atualizado em 2026-10-23. Esta seção é o registro de andamento; o restante do
-documento é o plano, e não muda por causa do progresso.
-
-| Fase | Estado | Registro |
-| --- | --- | --- |
-| 0 — Fundação e decisões | concluída | [fase-0.md](fases/fase-0.md) |
-| 1 — Coleta e identidade | concluída (modelo de dados + assets institucionais no projeto) | [fase-1.md](fases/fase-1.md) |
-| 2 — Motor de cálculo | concluída | [fase-2.md](fases/fase-2.md) |
-| **P1 — Parada de teste** | **aprovada**: 49/49 testes, as 15 atividades do robô batendo com a planilha | [fase-2.md](fases/fase-2.md) |
-| 3 a 8 | não iniciadas | — |
-
-**A Parada P1 corrigiu três coisas** na primeira entrega do motor: o tempo
-disponível não desconta o descanso (D-10), a ocupação não usa o takt time
-(D-11) e a inspeção não entra no tempo de ciclo (D-13). Duas divergências que
-mexem nos números seguem abertas porque o cenário do robô não as exercita:
-`numOperadores` fora das fórmulas (D-1, vai ao cenário do trem na Fase 7) e a
-grandeza que propaga pela sequência (D-3, vai à **Parada P3**, porque o
-fluxograma da planilha estava vazio).
-
-Documentos de referência produzidos até aqui:
-
-- [modelo-de-dados.md](modelo-de-dados.md) — as entidades, os campos, as
-  unidades e o mapeamento contra as abas da planilha. É a referência de entrada
-  e saída do motor de cálculo.
-- [decisoes/0001-escolha-da-stack.md](decisoes/0001-escolha-da-stack.md)
-- [decisoes/0002-representacao-da-sequencia.md](decisoes/0002-representacao-da-sequencia.md)
-  — como a sequência de atividades foi representada (grafo dirigido) e por quê.
-- [decisoes/0003-premissas-do-motor-de-calculo.md](decisoes/0003-premissas-do-motor-de-calculo.md)
-  — o que o motor faz quando a fórmula recebida e o modelo de dados não
-  conversam, e por que ele não valida a entrada.
-
-As divergências entre as fórmulas da planilha e o modelo de dados — quinze
-pontos, seis resolvidos pela P1 e nove abertos, com impacto estimado em cada
-número — estão em [fase-2.md](fases/fase-2.md).
-Perguntas abertas do modelo, no fim de [modelo-de-dados.md](modelo-de-dados.md).
-
 ## Objetivo e norte
 
 Construir um sistema web que faz o que a planilha Simulador de Produção do prof. Edson faz, só que mais claro e objetivo, e que funciona tão bem quanto ela. Não é só uma cópia da planilha: é um simulador de processos de verdade, genérico e testável, que a pessoa consegue usar sem depender de dados reais.

@@ -69,7 +69,7 @@ export function classificarOcupacao(ocupacao: number): StatusOcupacao {
  * tempoCicloMin        = tempoPadraoMin + setupMin / tamanhoLote
  * taktTimeMin          = (tempoDisponivelMin / (tamanhoLote * demanda)) * 60
  * quantidadeCiclos     = demanda / tamanhoLote
- * capacidadeDiaria     = tempoDisponivelMin / tempoCicloMin
+ * capacidadePeriodo     = tempoDisponivelMin / tempoCicloMin
  * ocupacao             = (tempoCicloMin * demanda) / tempoDisponivelMin
  * tempoProducaoLoteMin = tempoCicloMin * quantidadeCiclos
  * ```
@@ -87,7 +87,7 @@ export function classificarOcupacao(ocupacao: number): StatusOcupacao {
  * TODO(D-11): a **ocupação não usa o takt time**. A fórmula é a razão entre o
  * tempo que a demanda exige da atividade (`tempoCicloMin * demanda`) e o tempo
  * que ela tem (`tempoDisponivelMin`) — o que, por identidade, é o mesmo que
- * `demanda / capacidadeDiaria`. O `taktTimeMin` continua sendo calculado porque
+ * `demanda / capacidadePeriodo`. O `taktTimeMin` continua sendo calculado porque
  * aparece no relatório da planilha, mas não é o denominador da ocupação. Até a
  * P1 o motor usava `tempoCicloMin / taktTimeMin`, que dava valores 3 vezes
  * menores no cenário do robô.
@@ -124,14 +124,14 @@ export function calcularAtividade(
   const taktTimeMin = (tempoDisponivelMin / (cenario.tamanhoLote * cenario.demanda)) * 60
 
   const quantidadeCiclos = cenario.demanda / cenario.tamanhoLote
-  const capacidadeDiaria = tempoDisponivelMin / tempoCicloMin
+  const capacidadePeriodo = tempoDisponivelMin / tempoCicloMin
   const ocupacao = (tempoCicloMin * cenario.demanda) / tempoDisponivelMin
 
   return {
     atividadeId: atividade.id,
     tempoPadraoMin,
     tempoCicloMin,
-    capacidadeDiaria,
+    capacidadePeriodo,
     taktTimeMin,
     tempoProducaoLoteMin: tempoCicloMin * quantidadeCiclos,
     ocupacao,

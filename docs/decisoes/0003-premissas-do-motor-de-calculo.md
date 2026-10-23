@@ -117,12 +117,12 @@ devolver `NaN` gratuito**:
 
 O briefing diz: "a `producaoRealizadaDiaria` de cada atividade é limitada pela
 menor capacidade entre ela e todas as suas predecessoras diretas". Lido ao pé da
-letra, "capacidade das predecessoras" seria a `capacidadeDiaria` delas. O motor
+letra, "capacidade das predecessoras" seria a `capacidadePeriodo` delas. O motor
 usa a **produção realizada** das predecessoras:
 
 ```text
 producaoRealizadaDiaria[a] = min(
-  capacidadeDiaria[a],
+  capacidadePeriodo[a],
   producaoRealizadaDiaria[p] para toda predecessora direta p de a
 )
 ```

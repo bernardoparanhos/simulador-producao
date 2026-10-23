@@ -71,7 +71,7 @@ tempoPadraoMin       = tempoCronometradoMin * (fatorRitmo/100) * (1 + fatorToler
 tempoCicloMin        = tempoPadraoMin + setupMin / tamanhoLote
 taktTimeMin          = (tempoDisponivelMin / (tamanhoLote * demanda)) * 60
 quantidadeCiclos     = demanda / tamanhoLote
-capacidadeDiaria     = tempoDisponivelMin / tempoCicloMin
+capacidadePeriodo     = tempoDisponivelMin / tempoCicloMin
 ocupacao             = (tempoCicloMin * demanda) / tempoDisponivelMin
 tempoProducaoLoteMin = tempoCicloMin * quantidadeCiclos
 estoqueFinal         = producaoRealizadaDiaria - demanda
@@ -81,7 +81,7 @@ Propagação pela sequência, que o robô não exercita (não tem fluxograma):
 
 ```text
 producaoRealizadaDiaria[a] = min(
-  capacidadeDiaria[a],
+  capacidadePeriodo[a],
   producaoRealizadaDiaria[p] para toda predecessora direta p de a
 )
 ```
@@ -200,7 +200,7 @@ A fórmula correta é
 ocupacao = (tempoCicloMin * demanda) / tempoDisponivelMin
 ```
 
-que por identidade é o mesmo que `demanda / capacidadeDiaria`. Em palavras: a
+que por identidade é o mesmo que `demanda / capacidadePeriodo`. Em palavras: a
 razão entre o tempo que a demanda exige da atividade e o tempo que ela tem.
 
 A fórmula anterior (`tempoCicloMin / taktTimeMin`) dava valores 3 vezes menores
@@ -309,15 +309,18 @@ do tipo. **A decidir:** manter a conversão, ou mudar o modelo para fração nes
 dois campos? Não afeta número nenhum hoje, porque a inspeção não entra em
 cálculo (D-13) — mas afeta assim que entrar, e afeta as telas da Fase 3.
 
-#### D-7. `capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias
+#### D-7. Os campos `...Diaria` não são diários — **PARCIALMENTE RESOLVIDA**
 
-`tempoDisponivelMin` já embute o multiplicador do período. Logo as duas grandezas
-são **do período**, não do dia: no robô, a capacidade 892,91 da atividade `'111'`
-é para a semana inteira, não para um dia.
+`tempoDisponivelMin` já embute o multiplicador do período. Logo as grandezas
+derivadas são **do período**, não do dia: no robô, a capacidade 892,91 da
+atividade `'111'` é para a semana inteira, não para um dia.
 
-É consistente com `estoqueFinal = producaoRealizadaDiaria - demanda`, já que a
-demanda também é do período — mas o nome engana quem lê. Só nome, nenhum número
-muda. Sugestão: `capacidadePeriodo` e `producaoRealizadaPeriodo`.
+`capacidadeDiaria` foi renomeado para **`capacidadePeriodo`** na Fase 3. A
+fórmula não mudou e os 49 testes seguem passando — era só nome.
+
+**Falta `producaoRealizadaDiaria`**, que ficou com o sufixo antigo ao lado do
+campo já renomeado. É a mesma grandeza e o mesmo argumento; renomear para
+`producaoRealizadaPeriodo` fecha a divergência.
 
 #### D-8. `wipPecas` é constante por construção
 

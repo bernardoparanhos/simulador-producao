@@ -16,7 +16,7 @@ import type { ResultadoAtividadeIsolada } from './atividade'
  * Encontra a atividade gargalo: a de **menor capacidade** entre todas.
  *
  * ```text
- * gargaloAtividadeId = atividade com menor capacidadeDiaria
+ * gargaloAtividadeId = atividade com menor capacidadePeriodo
  * ```
  *
  * Note que o gargalo é definido pela capacidade, e não pela produção realizada:
@@ -35,7 +35,7 @@ export function encontrarGargalo(
   let gargalo: ResultadoAtividadeIsolada | null = null
 
   for (const resultado of resultados) {
-    if (gargalo === null || resultado.capacidadeDiaria < gargalo.capacidadeDiaria) {
+    if (gargalo === null || resultado.capacidadePeriodo < gargalo.capacidadePeriodo) {
       gargalo = resultado
     }
   }

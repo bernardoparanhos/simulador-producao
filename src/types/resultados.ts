@@ -49,7 +49,7 @@ export interface ResultadoPorAtividade {
   tempoCicloMin: number
 
   /** Capacidade de produção da atividade, em unidades por dia (unid./dia). */
-  capacidadeDiaria: number
+  capacidadePeriodo: number
 
   /**
    * Takt time, em minutos por lote (min/lote).
@@ -77,7 +77,7 @@ export interface ResultadoPorAtividade {
    * está em 1,15, ou seja, a demanda exige 15% mais tempo do que ela tem.
    *
    * Fórmula: `tempoCicloMin * demanda / tempoDisponivelMin` — o que, por
-   * identidade, é o mesmo que `demanda / capacidadeDiaria`. Não usa o takt
+   * identidade, é o mesmo que `demanda / capacidadePeriodo`. Não usa o takt
    * time.
    *
    * Todo o modelo usa fração; converter para porcentagem é responsabilidade da

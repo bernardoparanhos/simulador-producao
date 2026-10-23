@@ -206,7 +206,7 @@ Nada aqui é preenchido pela pessoa.
 | `atividadeId` | — | A quem o resultado se refere |
 | `tempoPadraoMin` | min/unid. | Cronometrado, com ritmo e tolerância aplicados |
 | `tempoCicloMin` | min/unid. | Tempo padrão distribuído entre os postos |
-| `capacidadeDiaria` | unid./dia | Quanto a atividade poderia produzir |
+| `capacidadePeriodo` | unid./período | Quanto a atividade poderia produzir no período |
 | `taktTimeMin` | min/lote | Ritmo exigido pela demanda; não é o denominador da ocupação |
 | `tempoProducaoLoteMin` | min | Tempo para um lote inteiro, com setup |
 | `ocupacao` | **fração, 1 = 100%** | `0,85` = 85%; passa de 1 na sobrecarga |
@@ -296,9 +296,9 @@ está em disputa. A lista completa, com o impacto de cada uma, está em
    o modelo para fração nesses dois campos?
 5. **`paradaNaoPlanejada`** não entra em nenhuma fórmula e não tem campo de
    resultado. Hoje é entrada inerte.
-6. **`capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias** — são do
-   período, porque o tempo disponível já embute os dias. Renomear para
-   `...Periodo`?
+6. **`producaoRealizadaDiaria` não é diária** — é do período, porque o tempo
+   disponível já embute os dias. `capacidadeDiaria` virou `capacidadePeriodo` na
+   Fase 3; este campo ficou para trás e merece o mesmo tratamento.
 7. **`periodicidade` quase não faz diferença.** Depois da P1, Diario e Semanal
    usam o mesmo multiplicador, e só Mensal difere (fator 22, ainda não
    verificado contra a planilha).

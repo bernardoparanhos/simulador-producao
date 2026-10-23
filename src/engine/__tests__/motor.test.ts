@@ -120,7 +120,7 @@ describe('calcularAtividade', () => {
 
     expect(resultado.taktTimeMin).toBeCloseTo(5.125, CASAS) // (410 / (20*240)) * 60
     expect(resultado.quantidadeCiclos).toBe(12) // 240 / 20
-    expect(resultado.capacidadeDiaria).toBeCloseTo(410 / 1.5, CASAS) // 273,33
+    expect(resultado.capacidadePeriodo).toBeCloseTo(410 / 1.5, CASAS) // 273,33
     expect(resultado.ocupacao).toBeCloseTo(360 / 410, CASAS) // (1,5 * 240) / 410
     expect(resultado.tempoProducaoLoteMin).toBeCloseTo(18, CASAS) // 1,5 * 12
   })
@@ -132,7 +132,7 @@ describe('calcularAtividade', () => {
     // demanda / capacidade. Até a P1 o motor dividia pelo takt, o que dava
     // valores 3 vezes menores no cenário do robô.
     expect(resultado.ocupacao).toBeCloseTo(
-      cenarioExemplo.demanda / resultado.capacidadeDiaria,
+      cenarioExemplo.demanda / resultado.capacidadePeriodo,
       CASAS,
     )
     expect(resultado.ocupacao).not.toBeCloseTo(
@@ -315,7 +315,7 @@ describe('simular — cenário de exemplo de ponta a ponta', () => {
 
     for (const { id, capacidade, producao } of esperado) {
       const resultado = resultadoDe(porAtividade, id)
-      expect(resultado.capacidadeDiaria).toBeCloseTo(capacidade, CASAS)
+      expect(resultado.capacidadePeriodo).toBeCloseTo(capacidade, CASAS)
       expect(resultado.producaoRealizadaDiaria).toBeCloseTo(producao, CASAS)
     }
   })

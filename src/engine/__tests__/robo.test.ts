@@ -132,10 +132,10 @@ describe('Parada P1 — caso do robô contra a planilha', () => {
     }
   })
 
-  it('capacidadeDiaria bate com a planilha, nas 15 atividades', () => {
+  it('capacidadePeriodo bate com a planilha, nas 15 atividades', () => {
     for (const esperado of GABARITO) {
       const real = resultadoDe(esperado.id)
-      esperarProximo(real.capacidadeDiaria, esperado.capacidade, TOL_CAPACIDADE, `capacidade de ${esperado.id}`)
+      esperarProximo(real.capacidadePeriodo, esperado.capacidade, TOL_CAPACIDADE, `capacidade de ${esperado.id}`)
     }
   })
 
@@ -158,7 +158,7 @@ describe('Parada P1 — caso do robô contra a planilha', () => {
     // a propagação do gargalo não tem por onde agir. É o comportamento esperado,
     // e é a razão de ser do projeto: na planilha o fluxo não alimenta o cálculo.
     for (const resultado of porAtividade) {
-      expect(resultado.producaoRealizadaDiaria).toBe(resultado.capacidadeDiaria)
+      expect(resultado.producaoRealizadaDiaria).toBe(resultado.capacidadePeriodo)
     }
   })
 
