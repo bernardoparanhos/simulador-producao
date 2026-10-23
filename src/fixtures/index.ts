@@ -4,21 +4,9 @@
  *
  * | Cenário | O que é |
  * | --- | --- |
- * | `exemplo` | Sintético e fictício. Quatro atividades com afunilamento, para exercitar o motor. |
- * | `robo` | O caso real da planilha, referência da Parada P1. **Ainda sem os números** — ver `robo.ts`. |
+ * | `robo` | O caso real da planilha `SIMULADOR DE PRODUÇÃO ROBÔ.xlsm`, referência da Parada P1. 15 atividades, sem fluxo (o fluxograma estava vazio). |
+ * | `exemplo` | Sintético e fictício. Quatro atividades com afunilamento, para exercitar a propagação do gargalo, que o robô não exercita. |
  */
 
-export {
-  atividadesExemplo,
-  cenarioExemplo,
-  exemplo,
-  sequenciaExemplo,
-} from './exemplo'
-export {
-  atividadesRobo,
-  cenarioRobo,
-  PENDENTE,
-  robo,
-  roboEstaPendente,
-  sequenciaRobo,
-} from './robo'
+export { atividadesExemplo, cenarioExemplo, exemplo, sequenciaExemplo } from './exemplo'
+export { atividadesRobo, cenarioRobo, robo, sequenciaRobo } from './robo'

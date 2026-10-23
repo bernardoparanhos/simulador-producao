@@ -18,11 +18,13 @@ em que unidade está e de onde na planilha ele veio.
 2. **A unidade está no nome do campo.** O sufixo `Min` quer dizer minutos.
    Onde o nome não cabe a unidade, ela está no JSDoc — e está em *todos* os
    campos, sem exceção.
-3. **Grandeza relativa é sempre fração de 0 a 1.** Ocupação, eficiência e
-   ocupação média usam `0,85`, nunca `85`. A exceção são os fatores de entrada
-   (`fatorRitmo`, `fatorTolerancia`, os campos de inspeção), que ficam em
-   porcentagem porque é o que a pessoa digita e confere contra a planilha.
-   Formatar para exibição é trabalho da tela, nunca do motor.
+3. **Grandeza relativa é sempre fração, em que 1 é 100%.** Ocupação,
+   eficiência e ocupação média usam `0,85`, nunca `85` — e **passam de 1**
+   quando há sobrecarga (a atividade gargalo do robô está em 1,15). A exceção
+   são os fatores de entrada (`fatorRitmo`, `fatorTolerancia`, os campos de
+   inspeção), que ficam em porcentagem porque é o que a pessoa digita e confere
+   contra a planilha. Formatar para exibição é trabalho da tela, nunca do
+   motor.
 4. **Entrada e resultado não se misturam.** O que a pessoa preenche está em
    `Cenario`, `Atividade` e `Sequencia`; o que o motor calcula está em
    `ResultadoPorAtividade` e `ResultadoGlobal`. Por isso o **tempo disponível**
@@ -205,9 +207,9 @@ Nada aqui é preenchido pela pessoa.
 | `tempoPadraoMin` | min/unid. | Cronometrado, com ritmo e tolerância aplicados |
 | `tempoCicloMin` | min/unid. | Tempo padrão distribuído entre os postos |
 | `capacidadeDiaria` | unid./dia | Quanto a atividade poderia produzir |
-| `taktTimeMin` | min/unid. | Ritmo exigido pela demanda |
+| `taktTimeMin` | min/lote | Ritmo exigido pela demanda; não é o denominador da ocupação |
 | `tempoProducaoLoteMin` | min | Tempo para um lote inteiro, com setup |
-| `ocupacao` | **fração 0..1** | `0,85` = 85% |
+| `ocupacao` | **fração, 1 = 100%** | `0,85` = 85%; passa de 1 na sobrecarga |
 | `statusOcupacao` | — | `ok` (< 0,85), `atencao` (< 1,00), `acima` (>= 1,00) |
 | `quantidadeCiclos` | — | Ciclos executados no período |
 | `producaoRealizadaDiaria` | unid./dia | O que de fato sai, limitado pelo gargalo |
@@ -219,18 +221,19 @@ Nada aqui é preenchido pela pessoa.
 | Campo | Unidade | O que é |
 | --- | --- | --- |
 | `tempoDisponivelMin` | min | **Calculado** a partir da jornada do cenário |
-| `eficienciaTotal` | **fração 0..1** | Média das ocupações. `0,875` = 87,5% |
+| `eficienciaTotal` | **fração, 1 = 100%** | Média das ocupações. `0,875` = 87,5% |
 | `leadTimeMin` | min | Tempo de uma unidade atravessar o fluxo todo |
 | `wipPecas` | unid. | Material em processamento |
-| `ocupacaoMedia` | **fração 0..1** | `0,724` = 72,4% |
+| `ocupacaoMedia` | **fração, 1 = 100%** | `0,724` = 72,4% |
 | `gargaloAtividadeId` | — | A atividade gargalo, ou nulo se não houver fluxo |
 | `maiorTempoProducaoMin` | min | Maior tempo de lote; é o da atividade gargalo |
 
 Decisões e pontos abertos neste bloco:
 
-- **Tudo relativo é fração de 0 a 1** (decidido na Fase 2): `ocupacao`,
+- **Tudo relativo é fração** (decidido na Fase 2): `ocupacao`,
   `eficienciaTotal` e `ocupacaoMedia`. Antes, as duas últimas estavam em
-  porcentagem.
+  porcentagem. **Não são limitadas a 1** — ver a divergência D-15 na
+  [Fase 2](fases/fase-2.md).
 - **`leadTime` virou `leadTimeMin` e `wip` virou `wipPecas`** (Fase 2), para
   seguir a convenção de unidade no nome que vale para o resto do modelo.
 - **`ehGargalo` é redundante com `gargaloAtividadeId`**, de propósito: evita que
@@ -275,17 +278,27 @@ dado que dirige o cálculo.
 
 ## Perguntas abertas
 
-Campos que o modelo define mas nenhuma fórmula consome, descobertos ao
-implementar o motor. A lista completa, com impacto estimado, está em
+Campos que o modelo define mas nenhuma fórmula consome, ou cuja unidade ainda
+está em disputa. A lista completa, com o impacto de cada uma, está em
 [`docs/fases/fase-2.md`](fases/fase-2.md); em resumo:
 
 1. **`numOperadores`** não entra em nenhuma fórmula, embora o modelo o defina
-   como postos em paralelo. Deveria dividir o tempo de ciclo?
-2. **`paradaNaoPlanejada`** não entra em nenhuma fórmula e não tem campo de
+   como postos em paralelo. Deveria dividir o tempo de ciclo? A Parada P1 não
+   resolveu: todas as atividades do robô têm um operador só.
+2. **`tempoDescansoMin`** existe no cenário mas não entra no tempo disponível —
+   a planilha não o desconta. É esquecimento dela, ou o descanso já está
+   embutido em outro desconto?
+3. **Toda a inspeção é inerte.** `porcentagemInspecionada`, `tempoPorPecaMin` e
+   `minimoAprovacao` estão preenchidos no robô e não afetam número nenhum do
+   relatório. Falta descobrir onde a planilha os usa.
+4. **Unidade dos campos de inspeção.** O modelo os documenta em `%` de 0 a 100;
+   a planilha guarda fração (0,20 e 0,90). O fixture converte. Manter, ou mudar
+   o modelo para fração nesses dois campos?
+5. **`paradaNaoPlanejada`** não entra em nenhuma fórmula e não tem campo de
    resultado. Hoje é entrada inerte.
-3. **`inspecao.minimoAprovacao`** é calculada e não usada. A produção realizada
-   deve ser multiplicada pela taxa de aprovação? O estoque conta peças
-   produzidas ou aprovadas?
-4. **`capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias** — são do
+6. **`capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias** — são do
    período, porque o tempo disponível já embute os dias. Renomear para
    `...Periodo`?
+7. **`periodicidade` quase não faz diferença.** Depois da P1, Diario e Semanal
+   usam o mesmo multiplicador, e só Mensal difere (fator 22, ainda não
+   verificado contra a planilha).

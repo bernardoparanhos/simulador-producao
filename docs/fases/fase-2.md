@@ -1,8 +1,8 @@
 # Fase 2 — Motor de cálculo
 
 - **Data:** 2026-10-23
-- **Status:** motor concluído e testado contra as fórmulas. **Parada P1 não
-  executada** — faltam os dados do robô.
+- **Status:** concluída. **Parada P1 aprovada** — 49/49 testes passando, as 15
+  atividades do robô batendo com a planilha.
 
 ## Objetivo
 
@@ -10,25 +10,29 @@ Portar as fórmulas extraídas da planilha para um módulo TypeScript puro, sem
 interface. O motor recebe `EntradaSimulacao` e devolve `ResultadoSimulacao`.
 
 Fechar a fase incluía a **Parada P1**: rodar o caso do robô e bater com os
-números da planilha. Isso não foi possível — ver [O que ficou em
-aberto](#o-que-ficou-em-aberto).
+números da planilha. A parada passou, depois de corrigir duas fórmulas e
+descartar uma premissa — ver [A Parada P1](#a-parada-p1).
 
 ## O que foi feito
 
 ### Tipos atualizados
 
-Conforme as decisões 1 e 2 do briefing, em `src/types/resultados.ts`:
+Em `src/types/resultados.ts`:
 
 | Antes | Depois |
 | --- | --- |
 | `leadTime` | `leadTimeMin` |
 | `wip` | `wipPecas` |
-| `eficienciaTotal` em % | fração 0..1 |
-| `ocupacaoMedia` em % | fração 0..1 |
+| `eficienciaTotal` em % | fração, 1 = 100% |
+| `ocupacaoMedia` em % | fração, 1 = 100% |
 
 Agora **todo** o modelo usa fração para grandezas relativas. Converter para
-porcentagem é trabalho exclusivo da camada de tela. A documentação de
-`StatusOcupacao` passou a apontar as faixas aplicadas pelo motor.
+porcentagem é trabalho exclusivo da camada de tela.
+
+A documentação de `ocupacao`, `eficienciaTotal` e `ocupacaoMedia` deixou de
+dizer "fração de 0 a 1": a ocupação **passa de 1** quando a atividade está
+sobrecarregada (ver D-15). A de `taktTimeMin` passou a registrar que ele é
+reportado mas não é o denominador da ocupação.
 
 ### O motor — `src/engine/`
 
@@ -37,9 +41,9 @@ Quatro passos, cada um num arquivo, na ordem em que dependem um do outro:
 | Arquivo | Função | O que calcula |
 | --- | --- | --- |
 | `tempo.ts` | `calcularTempoDisponivel` | Tempo produtivo do período, a partir da jornada |
-| | `calcularDiasNoPeriodo` | Converte `diasOuSemanasNoMes` em dias, conforme a periodicidade |
-| | `calcularTempoInspecaoPorPecaMin` | Parcela de inspeção por peça (premissa — ver divergências) |
-| | `calcularTaxaAprovacao` | Aprovação determinística (hoje não consumida) |
+| | `calcularDiasNoPeriodo` | Multiplicador do período, conforme a periodicidade |
+| | `calcularTempoInspecaoPorPecaMin` | Tempo de inspeção por peça — **não usado** (D-13) |
+| | `calcularTaxaAprovacao` | Aprovação determinística — **não usada** (D-4) |
 | `atividade.ts` | `calcularAtividade` | Tempo padrão, ciclo, takt, ciclos, capacidade, ocupação, tempo de lote |
 | | `classificarOcupacao` | Faixas `ok` / `atencao` / `acima` |
 | `sequencia.ts` | `propagarGargalo` | Produção realizada, percorrendo o grafo em ordem topológica |
@@ -56,42 +60,95 @@ resultado público, então os dois nunca saem de sincronia.
 efeito colateral e sem sorteio. Zero dependências — nem React, nem DOM, nem
 biblioteca alguma.
 
+### Fórmulas implementadas
+
+As que a Parada P1 confirmou contra a planilha:
+
+```text
+tempoDisponivelMin   = (tempoTurnoMin - tempoRefeicaoMin * numRefeicoesPorTurno
+                        - trocaTurnoMin) * turnosDiarios * diasNoPeriodo
+tempoPadraoMin       = tempoCronometradoMin * (fatorRitmo/100) * (1 + fatorTolerancia/100)
+tempoCicloMin        = tempoPadraoMin + setupMin / tamanhoLote
+taktTimeMin          = (tempoDisponivelMin / (tamanhoLote * demanda)) * 60
+quantidadeCiclos     = demanda / tamanhoLote
+capacidadeDiaria     = tempoDisponivelMin / tempoCicloMin
+ocupacao             = (tempoCicloMin * demanda) / tempoDisponivelMin
+tempoProducaoLoteMin = tempoCicloMin * quantidadeCiclos
+estoqueFinal         = producaoRealizadaDiaria - demanda
+```
+
+Propagação pela sequência, que o robô não exercita (não tem fluxograma):
+
+```text
+producaoRealizadaDiaria[a] = min(
+  capacidadeDiaria[a],
+  producaoRealizadaDiaria[p] para toda predecessora direta p de a
+)
+```
+
 ### Fixtures — `src/fixtures/`
 
-- **`exemplo.ts`** — cenário sintético e fictício, criado para os testes. Quatro
-  atividades em três etapas, com um **afunilamento** real (duas atividades da
-  etapa 1 alimentam uma da etapa 2) e o **gargalo no meio do caminho**, para
-  provar que a limitação se propaga a jusante. Inspeção desligada, para que o
-  cenário base exercite as fórmulas da planilha sem a premissa da inspeção.
-- **`robo.ts`** — o lugar do cenário do robô. **Sem os dados.** Ver abaixo.
+- **`robo.ts`** — o caso real, da planilha `SIMULADOR DE PRODUÇÃO ROBÔ.xlsm`.
+  15 atividades em três etapas e três linhas, demanda de 400 em lotes de 20,
+  dois turnos. **Sem sequência:** o fluxograma da planilha estava vazio.
+- **`exemplo.ts`** — cenário sintético e fictício, criado para exercitar o que o
+  robô não exercita: afunilamento (duas atividades da etapa 1 alimentam uma da
+  etapa 2), gargalo no meio do caminho, as três faixas de ocupação e estoque dos
+  dois sinais. A demanda foi ajustada de 480 para 240 depois da P1, porque com a
+  fórmula de ocupação corrigida o valor antigo punha quase tudo em `'acima'` e o
+  cenário deixava de cobrir as faixas.
 
-### Testes
-
-`npm test` (novo script, rodando Vitest):
+## A Parada P1
 
 ```
 Test Files  2 passed (2)
-      Tests  41 passed | 6 todo (47)
+      Tests  49 passed (49)
 ```
 
-- **`motor.test.ts` — 41 testes, todos passando.** Verificam o motor contra as
-  fórmulas recebidas: tempo disponível com as três periodicidades, fatores de
-  ritmo e tolerância, diluição do setup, takt, capacidade, ocupação, as faixas de
-  status nos limites exatos (0,85 e 1,00), a parcela de inspeção, o
-  afunilamento pelo mínimo, a propagação por toda a cadeia, tolerância a ciclo e
-  a conexões inválidas, casos de borda (lista vazia, atividade sozinha) e a
-  pureza da função. Inclui um teste que prova que **mudar o fluxo muda os
-  números** — o ponto do projeto.
-- **`robo.test.ts` — 6 `todo` + 2 de estado.** As seis verificações da P1
-  (tempo padrão, tempo de ciclo, takt, ocupação, gargalo, estoque) estão
-  registradas como `it.todo`, aparecendo como pendentes na saída do Vitest. Mais
-  dois testes que passam: um garante que o motor não lança erro com o cenário
-  incompleto, outro falha de propósito no dia em que o fixture for preenchido,
-  para lembrar de converter os `todo` em testes reais.
+As 15 atividades do robô batem com a aba RELATÓRIO da planilha em **tempo
+padrão, tempo de ciclo, capacidade e ocupação**, mais o tempo disponível
+(5600 min), o takt (42 min) e o gargalo (atividade `'112'`).
 
-**O que os 41 testes provam:** o código implementa exatamente as fórmulas
-recebidas. **O que não provam:** que as fórmulas são as da planilha. Só a P1
-prova isso.
+### O que a P1 corrigiu
+
+Três coisas estavam erradas na primeira entrega da Fase 2:
+
+| # | O que estava errado | Prova |
+| --- | --- | --- |
+| D-10 | O tempo disponível descontava o descanso | Com descanso: 5320. Planilha: **5600** |
+| D-11 | A ocupação era `tempoCicloMin / taktTimeMin` | Dava 0,1493 para `'111'`. Planilha: **0,44797** |
+| D-13 | A inspeção era somada ao tempo de ciclo | `6,2216 + 1/20 = 6,2716` exato, sem folga |
+
+As duas primeiras vieram apontadas na extração. A terceira apareceu ao conferir
+o gabarito: o tempo de ciclo de `'111'` fecha exatamente no tempo padrão mais o
+setup diluído, sem espaço para a parcela de inspeção que a Fase 2 somava como
+premissa documentada.
+
+### O que a P1 não resolve
+
+- **A propagação do gargalo (D-3).** O robô não tem fluxograma, então nenhuma
+  atividade tem predecessora e a produção realizada é igual à capacidade em
+  todas. A propagação é testada com o cenário sintético e vai ao caso real na
+  **Parada P3**.
+- **`numOperadores` (D-1).** Todas as 15 atividades do robô têm um operador só,
+  então o cenário daria o mesmo resultado nas duas leituras.
+- **A periodicidade mensal (D-12).** Nenhum cenário mensal foi extraído; o fator
+  22 segue sem verificação.
+
+### Testes
+
+- **`robo.test.ts` — 9 testes.** O gabarito da planilha, campo por campo: tempo
+  disponível, takt, tempo padrão e ciclo (15 atividades), capacidade (15),
+  ocupação (15), gargalo, produção realizada igual à capacidade e estoque final.
+  Tolerância de 0,001 nos fracionários e 0,01 nas capacidades, que o gabarito
+  traz com duas casas.
+- **`motor.test.ts` — 40 testes.** O que a planilha não cobre: as três
+  periodicidades, o afunilamento pelo mínimo, a propagação por toda a cadeia,
+  tolerância a ciclo e a conexões órfãs, os limites exatos das faixas (0,85 e
+  1,00), bordas (lista vazia, atividade sozinha) e a pureza da função. Inclui um
+  teste provando que **mudar o fluxo muda os números** — o ponto do projeto — e
+  três testes que travam as divergências (D-1, D-11, D-13), de modo que mudar
+  qualquer uma exige mudar um teste de propósito.
 
 ## Decisões tomadas
 
@@ -101,169 +158,212 @@ Em resumo, três regras em ordem de precedência:
 
 1. **Onde há fórmula, implementa a fórmula**, mesmo quando o domínio sugere
    outra.
-2. **Onde não há fórmula, não inventa uma** — o campo fica inerte, com
-   `TODO(P1)`.
+2. **Onde não há fórmula, não inventa uma** — o campo fica inerte, com `TODO`.
 3. **Uma decisão de produto em texto vale como instrução**: cumpre, escolhendo o
    ponto de aplicação mais isolado possível, e documenta como premissa.
+
+A P1 validou a regra 1 e reprovou a única aplicação da regra 3: a premissa da
+inspeção estava errada (D-13). O ponto de aplicação ter ficado isolado numa
+função própria é o que permitiu remover o termo mudando uma linha.
 
 Mais duas decisões de fronteira, na mesma 0003:
 
 - **O motor não valida a entrada.** Validar exige decidir o que dizer ao
-  usuário, e isso é da interface (Fases 3 e 4). O motor só tem limites
-  defensivos para não travar nem devolver `NaN` gratuito.
+  usuário, e isso é da interface (Fases 3 e 4).
 - **A propagação usa a produção realizada das predecessoras**, não a capacidade
-  delas — é o que faz o gargalo atravessar a linha inteira, e é o que justifica a
-  ordem topológica que o briefing pediu.
+  delas — é o que faz o gargalo atravessar a linha inteira (D-3, a confirmar na
+  P3).
 
-## Divergências entre as fórmulas e o modelo de dados
+## Divergências
 
-Isto é o entregável mais importante da fase depois do código. Nove pontos, em
-ordem de impacto sobre os números. Os que mexem em número estão marcados.
+Quinze pontos entre as fórmulas da planilha e o modelo de dados. Seis foram
+resolvidos pela P1; nove seguem abertos.
 
-### D-1. `numOperadores` não entra em nenhuma fórmula — **mexe nos números**
+### Resolvidas pela Parada P1
+
+#### D-10. `tempoDescansoMin` não entra no tempo disponível — **RESOLVIDA**
+
+A fórmula da Fase 2 descontava o descanso. A planilha não desconta:
+`(480 - 30 * 2 - 20) * 2 * 7 = 5600`, que é o valor do relatório. Com o
+desconto daria 5320.
+
+O campo continua no modelo e no cenário do robô (20 min), porque é dado real da
+planilha — só não entra nesta conta. **A decidir com o professor:** a planilha
+esquece o descanso, ou ele já está embutido em outro desconto? Há um teste
+travando o comportamento atual.
+
+#### D-11. A ocupação não usa o takt time — **RESOLVIDA**
+
+A fórmula correta é
+
+```text
+ocupacao = (tempoCicloMin * demanda) / tempoDisponivelMin
+```
+
+que por identidade é o mesmo que `demanda / capacidadeDiaria`. Em palavras: a
+razão entre o tempo que a demanda exige da atividade e o tempo que ela tem.
+
+A fórmula anterior (`tempoCicloMin / taktTimeMin`) dava valores 3 vezes menores
+no cenário do robô — 0,1493 contra os 0,44797 do relatório para a atividade
+`'111'`.
+
+#### D-12. Para `'Semanal'`, o multiplicador é direto — **RESOLVIDA**
+
+O briefing da Fase 2 dizia que `'Semanal'` multiplicava `diasOuSemanasNoMes` por
+5 dias úteis. O robô prova que não: periodicidade `'Semanal'` com valor 7 dá
+5600 min, que é `400 * 2 * 7`. Com o fator 5 daria 28000.
+
+**Duas consequências a confirmar:**
+
+1. `'Diario'` e `'Semanal'` passaram a usar o mesmo multiplicador, então o campo
+   `periodicidade` só distingue `'Mensal'` dos outros dois. Ou o campo é
+   decorativo, ou falta uma diferença que a planilha não mostra.
+2. O fator 22 de `'Mensal'` **segue sem verificação** — nenhum cenário mensal
+   foi extraído.
+
+#### D-13. A inspeção não entra no tempo de ciclo — **RESOLVIDA**
+
+A Fase 2 somava `tempoPorPecaMin * (porcentagemInspecionada / 100)` ao tempo de
+ciclo de cada atividade, como premissa documentada, porque a decisão 5 do
+briefing mandava a inspeção entrar no cálculo mas nenhuma fórmula dizia onde.
+
+A P1 provou que a planilha não faz isso: o tempo de ciclo de `'111'` no
+relatório é exatamente `6,2216 + 1/20 = 6,2716`. O termo foi removido.
+
+**O que fica aberto:** o robô tem os três parâmetros de inspeção preenchidos
+(20% das peças, 1 min por peça, 90% de aprovação mínima) e **nenhum deles afeta
+número algum do relatório**. A inspeção tem de entrar em algum lugar — falta
+descobrir onde. As funções `calcularTempoInspecaoPorPecaMin` e
+`calcularTaxaAprovacao` seguem exportadas e não usadas.
+
+#### D-6. O `* 60` do takt é real — **RESOLVIDA**
+
+O takt da planilha é mesmo `(tempoDisponivelMin / (tamanhoLote * demanda)) * 60`,
+e dá 42 no cenário do robô. A leitura: é um takt **por lote**, não por peça — daí
+o `tamanhoLote` no denominador e o fator de conversão.
+
+A estranheza que a Fase 2 apontou (a ocupação de todas as atividades depender
+disso) desapareceu junto com D-11: a ocupação não usa o takt. Ele é reportado
+porque aparece no relatório.
+
+#### D-15. A ocupação não é limitada a 1 — **RESOLVIDA (documentação)**
+
+A documentação dos tipos dizia "fração de 0 a 1". A atividade gargalo do robô
+está em **1,15324**: a demanda exige 15% mais tempo do que ela tem. O mesmo vale
+para `eficienciaTotal` e `ocupacaoMedia`, que são médias de ocupações.
+
+Corrigido para "fração em que 1 é 100%". Nenhum número mudou — era afirmação
+errada na documentação, e um teste que assertava o limite foi reescrito.
+
+### Abertas
+
+#### D-1. `numOperadores` não entra em nenhuma fórmula — **mexe nos números**
 
 O modelo define o campo como postos de trabalho em paralelo, e dois operadores
-na mesma operação deveriam cortar o tempo de ciclo pela metade. A fórmula
-recebida (`tempoCicloMin = tempoPadraoMin + setupMin / tamanhoLote`) não o usa.
+na mesma operação deveriam cortar o tempo de ciclo pela metade. A fórmula da
+planilha não o usa.
 
-Implementado fiel ao briefing. **Impacto:** toda atividade com mais de um
-operador aparece com tempo de ciclo e ocupação maiores do que a realidade, e
-capacidade menor — o que também pode apontar o gargalo errado. É a segunda
-hipótese a testar se a P1 não bater.
+A P1 **não resolve**: todas as 15 atividades do robô têm um operador só. A dúvida
+só aparece num cenário com postos em paralelo — provavelmente o do trem, na
+Fase 7. Há um teste travando a escolha atual.
 
-Forma provável na planilha: `(tempoPadraoMin + setupMin / tamanhoLote) /
-numOperadores`, ou apenas `tempoPadraoMin / numOperadores + setupMin /
-tamanhoLote`. Há um teste travando a escolha atual, para ela só mudar por
-decisão.
+Forma provável: `(tempoPadraoMin + setupMin / tamanhoLote) / numOperadores`.
 
-### D-2. Inspeção: decisão sem fórmula — **mexe nos números**
+#### D-3. A propagação usa a produção realizada das predecessoras — **mexe nos números**
 
-A decisão 5 manda o tempo de inspeção entrar no cálculo, mas nenhuma fórmula diz
-onde. O motor soma `tempoPorPecaMin * (porcentagemInspecionada / 100)` ao tempo
-de ciclo **de cada atividade**, por ser o único ponto dimensionalmente
-compatível (min/unid.).
+O briefing diz "menor capacidade entre ela e todas as suas predecessoras
+diretas"; o motor usa a **produção realizada** das predecessoras, porque é a
+única leitura que exige ordem topológica (que o briefing pediu) e a única em que
+o gargalo propaga por toda a cadeia.
 
-**Impacto:** se na planilha a inspeção acontece num ponto único do fluxo, isso
-superestima todos os tempos de ciclo. Primeira hipótese a testar se a P1 não
-bater. Com `porcentagemInspecionada: 0` o termo é zero e o motor fica idêntico às
-fórmulas puras.
+A P1 **não resolve**, porque o robô não tem fluxograma. Vai à **Parada P3**.
+Diferença material em cadeias de três ou mais etapas: capacidades 80, 500 e 400
+em série dão 80 na terceira etapa com a leitura do motor, e 400 com a literal.
 
-### D-3. Propagação: produção realizada ou capacidade das predecessoras — **mexe nos números**
+#### D-4. `minimoAprovacao` é calculada e não usada
 
-O texto do briefing diz "menor capacidade entre ela e todas as suas
-predecessoras diretas"; o motor usa a **produção realizada** das predecessoras,
-porque é a única leitura que exige ordem topológica (que o briefing pediu) e a
-única em que o gargalo propaga por toda a cadeia (decisão 3).
+Nenhuma fórmula recebida consome a taxa de aprovação, e a P1 confirmou que ela
+não aparece em número nenhum do relatório. A decidir: a produção realizada deve
+ser multiplicada pela taxa? E o estoque conta peças produzidas ou aprovadas?
 
-**Impacto:** difere em cadeias de três ou mais etapas. Capacidades 80, 500 e 400
-em série dão 80 na terceira etapa com a leitura do motor, e 400 com a leitura
-literal.
+Faz par com D-13 — os dois são sobre a inspeção não afetar nada.
 
-### D-4. `minimoAprovacao` é calculada e não usada
-
-A decisão 5 fixa a aprovação em `minimoAprovacao`, sem sorteio. Mas nenhuma
-fórmula recebida consome essa taxa. Ela existe como `calcularTaxaAprovacao` e não
-afeta resultado nenhum.
-
-A decidir: a produção realizada deve ser multiplicada pela taxa de aprovação? E,
-nesse caso, o estoque final conta peças produzidas ou peças aprovadas?
-
-### D-5. `paradaNaoPlanejada` não é usada
+#### D-5. `paradaNaoPlanejada` não é usada
 
 Nenhuma fórmula foi recebida para ela, e não há campo de resultado para
-guardá-la. A leitura natural seria descontar seus minutos do tempo disponível da
-atividade atingida — mas a fórmula da capacidade usa o tempo disponível
-**global**, igual para todas as atividades, então aplicar a parada exigiria
-mudar uma fórmula dada como exata.
+guardá-la. A leitura natural (descontar os minutos do tempo disponível da
+atividade atingida) exigiria um tempo disponível **por atividade**, e a fórmula
+da capacidade usa o tempo disponível global.
 
-Deixada inerte, com `TODO(P1)`. Hoje é um campo de entrada que não faz nada.
+O robô não tem parada registrada, então a P1 não ajuda.
 
-### D-6. `taktTimeMin` depende do tamanho do lote e tem um `* 60`
+#### D-14. Unidade dos campos de inspeção
 
-A fórmula recebida é `(tempoDisponivelMin / (tamanhoLote * demanda)) * 60`. O
-takt clássico é tempo disponível dividido pela demanda. Aqui há duas
-estranhezas: o `tamanhoLote` no denominador faz o takt **mudar quando o lote
-muda**, o que é incomum para um ritmo ditado pela demanda; e o `* 60` sugere uma
-conversão de unidade (min↔h ou min↔s) que não aparece no resto das fórmulas.
+A planilha guarda `porcentagemInspecionada` como 0,20 e `minimoAprovacao` como
+0,90 — células de porcentagem do Excel, que armazenam fração. O modelo documenta
+os dois campos em `%` de 0 a 100, como `fatorRitmo` (100) e `fatorTolerancia`
+(1), que vêm em porcentagem na mesma planilha.
 
-Implementado exatamente como recebido — os dois fatores podem muito bem se
-cancelar na convenção de unidades da planilha. Mas vale conferir na P1, porque a
-ocupação de **todas** as atividades sai do takt, e com ela o `statusOcupacao` e a
-eficiência total.
+O fixture converte para 20 e 90, preservando o significado e honrando o contrato
+do tipo. **A decidir:** manter a conversão, ou mudar o modelo para fração nestes
+dois campos? Não afeta número nenhum hoje, porque a inspeção não entra em
+cálculo (D-13) — mas afeta assim que entrar, e afeta as telas da Fase 3.
 
-### D-7. `capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias
+#### D-7. `capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias
 
-`tempoDisponivelMin` já embute o multiplicador do período (os dias). Logo as duas
-grandezas são **do período**, não do dia. É consistente com
-`estoqueFinal = producaoRealizadaDiaria - demanda`, já que a demanda também é do
-período — mas o nome engana quem lê.
+`tempoDisponivelMin` já embute o multiplicador do período. Logo as duas grandezas
+são **do período**, não do dia: no robô, a capacidade 892,91 da atividade `'111'`
+é para a semana inteira, não para um dia.
 
-Só nome, nenhum número muda. Sugestão para uma fase futura:
-`capacidadePeriodo` e `producaoRealizadaPeriodo`.
+É consistente com `estoqueFinal = producaoRealizadaDiaria - demanda`, já que a
+demanda também é do período — mas o nome engana quem lê. Só nome, nenhum número
+muda. Sugestão: `capacidadePeriodo` e `producaoRealizadaPeriodo`.
 
-### D-8. `wipPecas` é constante por construção
+#### D-8. `wipPecas` é constante por construção
 
 `soma(quantidadeCiclos * tamanhoLote) / numAtividades`, com
 `quantidadeCiclos = demanda / tamanhoLote`, se reduz a `demanda` — para qualquer
-cenário, qualquer atividade, qualquer fluxo. O briefing já a marca como
-estimativa; o registro aqui é que ela não é uma estimativa imprecisa, é uma
-constante disfarçada. Um WIP de verdade sai do grafo (material parado entre
-etapas, que o estoque por atividade já insinua).
+cenário, qualquer atividade, qualquer fluxo. Não é uma estimativa imprecisa, é
+uma constante disfarçada. Um WIP de verdade sai do grafo.
 
-### D-9. `ocupacaoMedia` e `leadTimeMin` são apelidos
+#### D-9. `ocupacaoMedia` e `leadTimeMin` são apelidos
 
-Conforme o briefing: `ocupacaoMedia = eficienciaTotal` e
-`leadTimeMin = maiorTempoProducaoMin`. Na planilha os conceitos são distintos —
-eficiência pondera pelo tempo trabalhado, e o lead time é a soma dos tempos ao
-longo do caminho mais longo da sequência. O grafo já permite calcular o lead time
-de verdade; ficou para a Fase 5.
+`ocupacaoMedia = eficienciaTotal` e `leadTimeMin = maiorTempoProducaoMin`,
+conforme o briefing. Na planilha os conceitos são distintos — eficiência pondera
+pelo tempo trabalhado, e o lead time é a soma dos tempos ao longo do caminho
+mais longo da sequência. O grafo já permite calcular o lead time de verdade;
+ficou para a Fase 5.
 
 ### Não é divergência: `processo`
 
-Ignorado no motor, conforme a decisão 4 do briefing. Registrado para não parecer
-esquecimento.
+Ignorado no motor, conforme a decisão 4 do briefing. O campo está preenchido no
+fixture do robô (é o terceiro dígito do `id` de cada atividade) e não dirige
+cálculo nenhum.
 
 ## O que ficou em aberto
 
-### A Parada P1 não rodou
+### Agenda
 
-**Os números do robô não estão no repositório.** O plano de construção aponta as
-fórmulas e os dados para "a especificação viva" e "o pacote de extração"
-(`docs/plano-de-construcao.md`), documentos que vivem fora daqui. Uma busca em
-`docs/` e no código não achou nenhum dado do robô — nem a quantidade de
-atividades que ele tem.
+`grep -rn "TODO(" src/` lista tudo. Por ordem de quem decide:
 
-Nada foi inventado. `src/fixtures/robo.ts` tem a estrutura completa com todo
-campo numérico valendo `NaN` (um marcador exportado como `PENDENTE`), de modo que
-qualquer conta feita a partir dele sai visivelmente inválida. Com zeros, o motor
-devolveria números de aparência plausível e completamente falsos.
-
-Para fechar a P1 são necessárias duas coisas:
-
-| O que falta | De onde vem |
+| Quem decide | O que |
 | --- | --- |
-| **A entrada:** cenário, atividades (quantas e quais) e fluxo do robô | Abas DADOS INICIAIS, DADOS (ATIVIDADES), LOGICA PROCESSO e FLUXOGRAMA |
-| **O gabarito:** tempo padrão, tempo de ciclo, takt, ocupação, gargalo e estoque esperados | Abas RELATÓRIO, ESTOQUE FINAL e RESULTADO |
-
-O cabeçalho de `src/fixtures/robo.ts` lista isso campo por campo, e o de
-`src/engine/__tests__/robo.test.ts` descreve os três passos para fechar a parada.
-
-### Agenda da P1
-
-`grep -rn "TODO(P1)" src/` lista tudo. Em resumo: D-1 (`numOperadores`), D-2
-(ponto de aplicação da inspeção), D-3 (grandeza que propaga), D-4
-(`minimoAprovacao`), D-5 (`paradaNaoPlanejada`), D-6 (o `* 60` e o lote no
-takt).
+| Professor / planilha | D-10 (o descanso é esquecimento?), D-12 (periodicidade mensal e o papel do campo), D-13 e D-4 (onde a inspeção entra), D-5 (parada não planejada) |
+| Produto (Bernardo) | D-14 (unidade dos campos de inspeção), D-7 (renomear `...Diaria`) |
+| Parada P3 | D-3 (grandeza que propaga) |
+| Fase 7, cenário do trem | D-1 (`numOperadores`) |
+| Fase 5 | D-8 (WIP de verdade), D-9 (lead time e eficiência separados), faixas de `statusOcupacao` |
 
 ### TODOs de fases posteriores
 
 | TODO | Fase | O que é |
 | --- | --- | --- |
-| Faixas de `statusOcupacao` | 5 | 0,85 e 1,00 são provisórias, do briefing |
+| Faixas de `statusOcupacao` | 5 | 0,85 e 1,00 vêm do briefing; o corte de 1,00 é natural, o de 0,85 é convenção |
 | `leadTimeMin` de verdade | 5 | Caminho mais longo no grafo, em vez de apelido |
 | `ocupacaoMedia` separada da eficiência | 5 | Hoje o mesmo valor |
 | `wipPecas` de verdade | 5 | A fórmula atual é constante (D-8) |
-| Inspeção aleatória | 7 | A planilha sorteia; o motor é determinístico. Quando mudar, os testes precisam de semente fixa |
+| Inspeção aleatória | 7 | A planilha sorteia; o motor é determinístico. Quando mudar, os testes da P1 precisam de semente fixa |
+| Fluxo real do robô | P3 | O fluxograma da planilha estava vazio; montar no construtor e conferir |
 | Natureza da conexão no afunilamento | 4 | Hoje toda conexão é caminho alternativo do mesmo material; montagem de peças distintas pediria outra regra |
 | Validação da entrada | 3 e 4 | Ciclo no grafo, demanda zero, conexão órfã |
 
@@ -272,12 +372,11 @@ takt).
 | Entregável | Resultado |
 | --- | --- |
 | `npm run build` (inclui `tsc -b`) | ✅ sem erros de tipo |
-| `npm test` | ✅ 41 passando, 6 `todo` (os da P1) |
+| `npm test` | ✅ **49 passando, 0 pendentes** |
 | `npm run lint` | ✅ oxlint sem apontamentos |
 | Motor sem React, sem DOM, sem dependências | ✅ só importa `@/types` |
 | `simular()` puro e determinístico | ✅ coberto por teste |
-| Fórmulas implementadas como recebidas | ✅ uma a uma, com JSDoc citando a aba de origem |
-| Parada P1 | ❌ **não executada** — faltam os dados do robô |
+| **Parada P1** | ✅ **aprovada** — 15 atividades batendo em tempo padrão, ciclo, capacidade e ocupação |
 
 ## Não entra nesta fase (confirmando o escopo)
 

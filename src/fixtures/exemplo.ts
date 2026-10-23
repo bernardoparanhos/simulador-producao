@@ -2,43 +2,48 @@
  * Cenário sintético de exemplo — dados fictícios, escolhidos para testar.
  *
  * **Não é um produto real e não serve de referência para nenhuma parada de
- * teste.** Os números foram escolhidos para dar contas redondas e para exercitar
- * o motor nos pontos que importam:
+ * teste.** O caso real é `robo.ts`. Este cenário existe para exercitar o que o
+ * robô não exercita:
  *
  * - um **afunilamento** real: duas atividades da etapa 1 alimentam uma única
- *   atividade da etapa 2, que alimenta a etapa 3;
- * - um **gargalo no meio do caminho**, e não na primeira atividade, para provar
- *   que a limitação se propaga a jusante;
+ *   atividade da etapa 2, que alimenta a etapa 3. O fluxograma do robô estava
+ *   vazio, então a propagação do gargalo só é testada aqui;
+ * - um **gargalo no meio do caminho**, para provar que a limitação se propaga a
+ *   jusante por toda a cadeia, e não só um passo adiante;
  * - uma atividade com **setup** e outras sem, para o termo `setupMin/tamanhoLote`
  *   aparecer em algumas linhas e não em outras;
- * - **inspeção desligada** (`porcentagemInspecionada: 0`), para que o cenário
- *   base exercite as fórmulas da planilha sem a parcela de inspeção, que é
- *   premissa do motor e não fórmula recebida. Os testes ligam a inspeção à parte.
+ * - as **três faixas de ocupação** (`ok`, `atencao`, `acima`) e **estoque dos
+ *   dois sinais** (sobra e falta), num cenário só.
  *
  * Os números esperados, conferidos à mão:
  *
  * ```text
- * tempoDisponivelMin = (480 - 60*1 - 20 - 10) * 1 * 1 = 390
- * taktTimeMin        = (390 / (20 * 480)) * 60         = 2,4375
- * quantidadeCiclos   = 480 / 20                        = 24
+ * tempoDisponivelMin = (480 - 60*1 - 10) * 1 * 1 = 410
+ * taktTimeMin        = (410 / (20 * 240)) * 60    = 5,125
+ * quantidadeCiclos   = 240 / 20                   = 12
  *
- * atividade  etapa/linha  ciclo (min)  capacidade  produção  gargalo
- * ex-01      1 / 1        1,5          260         260
- * ex-02      1 / 2        2,0          195         195       <- gargalo
- * ex-03      2 / 1        0,5          780         195
- * ex-04      3 / 1        1,0          390         195
+ * atividade  etapa/linha  ciclo  capacid.  ocupação  status    produção  estoque
+ * ex-01      1 / 1        1,5    273,33    0,87805   atencao   273,33    +33,33
+ * ex-02      1 / 2        2,0    205,00    1,17073   acima     205,00    -35,00
+ * ex-03      2 / 1        0,5    820,00    0,29268   ok        205,00    -35,00
+ * ex-04      3 / 1        1,0    410,00    0,58537   ok        205,00    -35,00
  * ```
  *
- * A atividade `ex-03` tem a maior capacidade de todas (780) e ainda assim produz
- * 195: é o afunilamento limitando pelo ramo mais lento, que é o ponto do
- * projeto.
+ * A atividade `ex-03` tem a maior capacidade de todas (820) e ainda assim produz
+ * 205: é o afunilamento limitando pelo ramo mais lento, que é o ponto do
+ * projeto. E `ex-04`, duas etapas depois do gargalo, também cai para 205.
+ *
+ * A demanda foi fixada em 240 depois da Parada P1: com a fórmula de ocupação
+ * corrigida (`tempoCicloMin * demanda / tempoDisponivelMin`), a demanda de 480
+ * do rascunho original punha quase todas as atividades em `'acima'` e o cenário
+ * deixava de cobrir as três faixas.
  */
 
 import type { Atividade, Cenario, EntradaSimulacao, Sequencia } from '@/types'
 
-/** Dados iniciais fictícios: um turno de 8 h, um dia, lote de 20, demanda de 480. */
+/** Dados iniciais fictícios: um turno de 8 h, um dia, lote de 20, demanda de 240. */
 export const cenarioExemplo: Cenario = {
-  demanda: 480,
+  demanda: 240,
   tamanhoLote: 20,
   tempoRefeicaoMin: 60,
   trocaTurnoMin: 10,

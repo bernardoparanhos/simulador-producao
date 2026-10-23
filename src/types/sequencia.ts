@@ -132,9 +132,13 @@ export interface Sequencia {
    * linhas de uma etapa alimentando uma linha da etapa seguinte) e várias de
    * saída (divisão do fluxo).
    *
-   * TODO(Fase 2): quando várias origens alimentam um mesmo destino, decidir se
-   * a produção simplesmente soma ou se há proporção por conexão. Se houver
-   * proporção, ela entra como um campo desta interface.
+   * Quando várias origens alimentam um mesmo destino, vale a **menor** entre as
+   * que chegam, não a soma: o fluxo é limitado pelo ramo mais lento.
+   *
+   * TODO(Fase 4): essa regra trata toda conexão como caminho alternativo do
+   * mesmo material. Se um dia um destino montar peças vindas de ramos
+   * diferentes (duas peças distintas que viram uma), a conexão precisa dizer
+   * qual é a sua natureza, e isso entra como um campo desta interface.
    */
   conexoes: ConexaoSequencia[]
 }

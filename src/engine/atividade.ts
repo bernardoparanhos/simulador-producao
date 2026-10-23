@@ -7,12 +7,10 @@
  * `src/engine/sequencia.ts` e `src/engine/globais.ts`.
  *
  * Fonte das fórmulas: abas DADOS (formulário ATIVIDADES) e RELATÓRIO da
- * planilha do Simulador de Produção.
+ * planilha `SIMULADOR DE PRODUÇÃO ROBÔ.xlsm`, confirmadas na Parada P1.
  */
 
 import type { Atividade, Cenario, ResultadoPorAtividade, StatusOcupacao } from '@/types'
-
-import { calcularTempoInspecaoPorPecaMin } from './tempo'
 
 /**
  * O que é possível calcular olhando uma atividade isolada.
@@ -44,10 +42,15 @@ const LIMITE_ACIMA = 1
  * ocupacao >= 1,00  -> 'acima'
  * ```
  *
- * TODO(Fase 5): as faixas são provisórias, definidas no briefing da Fase 2 e
- * ainda não confirmadas contra a planilha.
+ * As três faixas aparecem no cenário do robô: a atividade `'124'` fica em
+ * `'ok'` (0,83), a `'221'` em `'atencao'` (0,98) e a `'112'`, o gargalo, em
+ * `'acima'` (1,15).
  *
- * @param ocupacao Ocupação da atividade, fração de 0 a 1.
+ * TODO(Fase 5): os cortes 0,85 e 1,00 vêm do briefing da Fase 2 e ainda não
+ * foram confirmados contra a planilha. O de 1,00 é natural (ocupação acima de
+ * 100% é sobrecarga); o de 0,85 é convenção.
+ *
+ * @param ocupacao Ocupação da atividade, fração em que 1 é 100%.
  * @returns A faixa em que a ocupação cai.
  */
 export function classificarOcupacao(ocupacao: number): StatusOcupacao {
@@ -63,35 +66,46 @@ export function classificarOcupacao(ocupacao: number): StatusOcupacao {
  *
  * ```text
  * tempoPadraoMin       = tempoCronometradoMin * (fatorRitmo/100) * (1 + fatorTolerancia/100)
- * tempoCicloMin        = tempoPadraoMin + setupMin / tamanhoLote   [+ inspeção, ver abaixo]
+ * tempoCicloMin        = tempoPadraoMin + setupMin / tamanhoLote
  * taktTimeMin          = (tempoDisponivelMin / (tamanhoLote * demanda)) * 60
  * quantidadeCiclos     = demanda / tamanhoLote
  * capacidadeDiaria     = tempoDisponivelMin / tempoCicloMin
- * ocupacao             = tempoCicloMin / taktTimeMin
+ * ocupacao             = (tempoCicloMin * demanda) / tempoDisponivelMin
  * tempoProducaoLoteMin = tempoCicloMin * quantidadeCiclos
  * ```
  *
  * O tempo padrão é o cronometrado corrigido: o fator de ritmo ajusta a medição
  * para um operador de ritmo normal e o fator de tolerância acrescenta o tempo
  * de necessidades pessoais, fadiga e esperas. O tempo de ciclo acrescenta o
- * setup diluído no lote. O takt é o ritmo que a demanda exige, e a ocupação é a
- * razão entre o ritmo da atividade e esse ritmo exigido.
+ * setup diluído no lote.
  *
- * **Parcela de inspeção.** Ao tempo de ciclo soma-se
- * `calcularTempoInspecaoPorPecaMin(cenario.inspecao)`, que vale zero quando a
- * porcentagem inspecionada é zero. Isso é premissa do motor, não fórmula da
- * planilha — ver a documentação daquela função e `docs/fases/fase-2.md`.
+ * Conferido contra a planilha do robô, atividade `'111'`:
+ * `6,16 * 1,01 = 6,2216` de tempo padrão, `+ 1/20 = 6,2716` de tempo de ciclo,
+ * `5600 / 6,2716 = 892,91` de capacidade e `(6,2716 * 400) / 5600 = 0,44797` de
+ * ocupação.
  *
- * TODO(P1): `numOperadores` **não entra em nenhuma destas fórmulas**. O modelo
+ * TODO(D-11): a **ocupação não usa o takt time**. A fórmula é a razão entre o
+ * tempo que a demanda exige da atividade (`tempoCicloMin * demanda`) e o tempo
+ * que ela tem (`tempoDisponivelMin`) — o que, por identidade, é o mesmo que
+ * `demanda / capacidadeDiaria`. O `taktTimeMin` continua sendo calculado porque
+ * aparece no relatório da planilha, mas não é o denominador da ocupação. Até a
+ * P1 o motor usava `tempoCicloMin / taktTimeMin`, que dava valores 3 vezes
+ * menores no cenário do robô.
+ *
+ * TODO(D-13): a inspeção **não entra no tempo de ciclo**. Até a P1 o motor
+ * somava uma parcela de inspeção aqui, como premissa documentada; o relatório
+ * da planilha provou que não há essa parcela (ver
+ * `calcularTempoInspecaoPorPecaMin`). Os três parâmetros de inspeção do robô não
+ * afetam número nenhum — falta descobrir onde a planilha os usa.
+ *
+ * TODO(D-1): `numOperadores` **não entra em nenhuma destas fórmulas**. O modelo
  * de dados o define como postos em paralelo, o que deveria dividir o tempo de
- * ciclo, mas a fórmula recebida não o usa. Mantido fiel ao briefing; é a
- * segunda hipótese a testar se os números do robô não baterem.
- *
- * TODO(P1): `cenario.paradaNaoPlanejada` também não entra. Nenhuma fórmula foi
- * recebida para ela, então o motor não inventa uma — ver `docs/fases/fase-2.md`.
+ * ciclo, mas a fórmula da planilha não o usa. No robô todas as atividades têm
+ * um operador, então a P1 não resolve a dúvida: ela só aparece num cenário com
+ * postos em paralelo.
  *
  * @param atividade A atividade a calcular.
- * @param cenario Dados iniciais (demanda, tamanho de lote, inspeção).
+ * @param cenario Dados iniciais (demanda e tamanho de lote).
  * @param tempoDisponivelMin Tempo produtivo do período, em minutos.
  * @returns Os indicadores que não dependem da sequência.
  */
@@ -105,16 +119,13 @@ export function calcularAtividade(
     (atividade.fatorRitmo / 100) *
     (1 + atividade.fatorTolerancia / 100)
 
-  const tempoCicloMin =
-    tempoPadraoMin +
-    atividade.setupMin / cenario.tamanhoLote +
-    calcularTempoInspecaoPorPecaMin(cenario.inspecao)
+  const tempoCicloMin = tempoPadraoMin + atividade.setupMin / cenario.tamanhoLote
 
   const taktTimeMin = (tempoDisponivelMin / (cenario.tamanhoLote * cenario.demanda)) * 60
 
   const quantidadeCiclos = cenario.demanda / cenario.tamanhoLote
   const capacidadeDiaria = tempoDisponivelMin / tempoCicloMin
-  const ocupacao = tempoCicloMin / taktTimeMin
+  const ocupacao = (tempoCicloMin * cenario.demanda) / tempoDisponivelMin
 
   return {
     atividadeId: atividade.id,

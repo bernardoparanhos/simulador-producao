@@ -1,7 +1,8 @@
 # 0003 — Premissas do motor de cálculo
 
 - **Data:** 2026-10-23
-- **Status:** aceita, com pontos a confirmar na Parada P1
+- **Status:** aceita. Revisada depois da Parada P1 — ver
+  [O veredito da P1](#o-veredito-da-p1)
 - **Fase:** 2
 
 ## Contexto
@@ -52,6 +53,11 @@ exigiria mudar uma fórmula que foi dada como exata.
 
 ### 3. Exceção: uma decisão explícita de produto vale como instrução
 
+> **A Parada P1 reprovou a única aplicação desta regra.** A premissa da inspeção
+> descrita abaixo estava errada: a planilha não soma inspeção ao tempo de ciclo.
+> O termo foi removido do motor. O texto fica como registro do raciocínio e do
+> que ele custou — ver [O veredito da P1](#o-veredito-da-p1).
+
 Quando o briefing decide algo em texto, o motor cumpre a decisão e escolhe o
 ponto de aplicação **mais conservador e mais isolado possível**, documentando-o
 como premissa.
@@ -74,6 +80,10 @@ puras da planilha.
 **O risco, explícito:** se na planilha a inspeção acontece num ponto único do
 fluxo, cobrá-la de todas as atividades superestima todos os tempos de ciclo. É a
 primeira hipótese a testar se os números do robô não baterem.
+
+*Confirmado na P1: o risco se materializou, e a hipótese estava certa — embora o
+diagnóstico tenha sido mais radical do que o previsto. A inspeção não entra no
+tempo de ciclo de lugar nenhum.*
 
 A `minimoAprovacao` fica como função separada (`calcularTaxaAprovacao`),
 determinística conforme a decisão 5, e **não é consumida por nenhuma fórmula** —
@@ -134,19 +144,42 @@ Duas razões:
 Diferença material em cadeias de três ou mais etapas. Registrado para
 confirmação na P1.
 
+## O veredito da P1
+
+A Parada P1 testou as três regras contra a planilha do robô. Resultado:
+
+| Regra | Veredito |
+| --- | --- |
+| 1. Fidelidade às fórmulas recebidas | **Validada.** Onde a fórmula estava certa, o número bateu na primeira. As duas que não bateram (D-10, D-11) estavam erradas na extração, não na implementação — e a correção foi trocar uma linha em cada arquivo. |
+| 2. Onde não há fórmula, não inventa uma | **Validada.** `paradaNaoPlanejada` e `minimoAprovacao` seguem inertes, e a P1 confirmou que a planilha também não os usa em número nenhum do relatório. Se o motor tivesse inventado uma fórmula para eles, os 15 tempos de ciclo teriam saído errados e a causa estaria escondida. |
+| 3. Decisão de produto vale como instrução | **Reprovada na prática.** A premissa da inspeção estava errada (D-13). |
+
+O que salvou a regra 3 de custar caro foi a parte da decisão que mandava
+escolher **o ponto de aplicação mais isolado possível**: a parcela de inspeção
+estava numa função própria, somada numa linha de `calcularAtividade`. Remover
+foi apagar um termo. Se tivesse sido embutida na fórmula do tempo de ciclo, ou
+espalhada pelo tempo disponível e pela capacidade, a correção teria sido uma
+refatoração.
+
+**Lição registrada:** quando o motor cumpre uma decisão de produto sem fórmula
+que a sustente, o ponto de aplicação precisa ser removível numa linha. Não é
+detalhe de estilo — é o que separa uma premissa errada de um erro caro.
+
 ## Alternativas descartadas
 
 | Alternativa | Por que não |
 | --- | --- |
-| **Inventar as fórmulas que faltam** (dividir por `numOperadores`, descontar a parada do tempo disponível da atividade) | Produziria números plausíveis e não auditáveis. A P1 compara com a planilha; um número inventado estraga a comparação nas duas direções. |
+| **Inventar as fórmulas que faltam** (dividir por `numOperadores`, descontar a parada do tempo disponível da atividade) | Produziria números plausíveis e não auditáveis. A P1 compara com a planilha; um número inventado estraga a comparação nas duas direções. *Confirmado: a P1 passou justamente porque nada foi inventado.* |
 | **Deixar a inspeção totalmente de fora** | Contraria uma decisão explícita do briefing. A decisão existe; o que falta é só o ponto de aplicação. |
 | **Validar a entrada dentro do motor** | Mistura responsabilidades e tira da interface a decisão de como avisar o usuário. Ver a seção acima. |
 | **Lançar erro em grafo com ciclo** | O motor viraria fonte de exceção para a tela, que vai ter grafos temporariamente inválidos enquanto a pessoa monta o fluxo. Melhor calcular algo e deixar a validação avisar. |
 
 ## Consequências
 
-- Todo campo e toda fórmula com pendência está marcado com `TODO(P1)` no
-  código. `grep -rn "TODO(P1)" src/` lista a agenda da Parada P1.
+- Todo campo e toda fórmula com pendência está marcado com `TODO` no código,
+  nomeando a divergência. `grep -rn "TODO(" src/` lista a agenda; as
+  divergências em si, com impacto e quem decide cada uma, estão em
+  [`docs/fases/fase-2.md`](../fases/fase-2.md).
 - O motor é determinístico e puro: mesma entrada, mesma saída, sem sorteio. Isso
   deixa de ser verdade quando a inspeção aleatória da planilha for implementada
   (`TODO(Fase 7)`), e aí os testes precisam de semente fixa.
@@ -154,4 +187,7 @@ confirmação na P1.
   que mudá-las exige mudar um teste de propósito — não dá para mudar por
   descuido.
 - As divergências entre fórmulas e modelo de dados estão listadas, uma a uma,
-  com impacto estimado, em [`docs/fases/fase-2.md`](../fases/fase-2.md).
+  com impacto estimado, em [`docs/fases/fase-2.md`](../fases/fase-2.md): quinze
+  pontos, seis resolvidos pela P1 e nove abertos.
+- A regra "o motor não valida a entrada" segue valendo e não foi tocada pela P1.
+  O cenário do robô é válido, então a parada não a exercitou.

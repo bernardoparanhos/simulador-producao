@@ -28,8 +28,16 @@
  * avisar a pessoa na tela. A única concessão são os limites defensivos descritos
  * em `propagarGargalo` e `calcularGlobais`, que existem para o motor não travar.
  *
- * Divergências entre as fórmulas recebidas e o modelo de dados estão
- * registradas em `docs/fases/fase-2.md` e marcadas com `TODO(P1)` no código.
+ * ## Estado do cálculo
+ *
+ * As fórmulas foram conferidas contra a planilha na Parada P1: as 15 atividades
+ * do cenário do robô (`src/fixtures/robo.ts`) batem em tempo padrão, tempo de
+ * ciclo, capacidade e ocupação.
+ *
+ * Nove divergências entre as fórmulas e o modelo de dados seguem abertas, com
+ * impacto e responsável de cada uma em `docs/fases/fase-2.md`. No código cada
+ * uma está marcada por um comentário com a sua sigla — `D-1`, `D-13` e assim
+ * por diante. `grep -rn "TODO(" src/` lista a agenda inteira.
  */
 
 import type { EntradaSimulacao, ResultadoPorAtividade, ResultadoSimulacao } from '@/types'

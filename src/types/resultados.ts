@@ -19,9 +19,11 @@ import type { AtividadeId } from './atividade'
  *
  * As faixas de corte são aplicadas pelo motor, em
  * `src/engine/atividade.ts`: abaixo de 0,85 é `'ok'`, abaixo de 1,00 é
- * `'atencao'`, de 1,00 para cima é `'acima'`.
+ * `'atencao'`, de 1,00 para cima é `'acima'`. As três aparecem no cenário do
+ * robô.
  *
- * TODO(Fase 5): confirmar as faixas contra a planilha. São provisórias.
+ * TODO(Fase 5): confirmar as faixas contra a planilha. O corte de 1,00 é
+ * natural (ocupação acima de 100% é sobrecarga); o de 0,85 é convenção.
  */
 export type StatusOcupacao = 'ok' | 'atencao' | 'acima'
 
@@ -50,10 +52,14 @@ export interface ResultadoPorAtividade {
   capacidadeDiaria: number
 
   /**
-   * Takt time, em minutos por unidade (min/unid.).
+   * Takt time, em minutos por lote (min/lote).
    *
-   * O ritmo que a demanda exige: tempo disponível dividido pela demanda. É a
-   * régua contra a qual o tempo de ciclo é comparado.
+   * O ritmo que a demanda exige. Calculado como
+   * `(tempoDisponivelMin / (tamanhoLote * demanda)) * 60`, a fórmula da
+   * planilha: no cenário do robô dá 42 min, igual para todas as atividades.
+   *
+   * Aparece no relatório, mas **não é o denominador da ocupação** — ver
+   * {@link ResultadoPorAtividade.ocupacao}.
    */
   taktTimeMin: number
 
@@ -65,10 +71,17 @@ export interface ResultadoPorAtividade {
   tempoProducaoLoteMin: number
 
   /**
-   * Ocupação da atividade, como **fração de 0 a 1**.
+   * Ocupação da atividade, como **fração em que 1 é 100%**.
    *
-   * `0,85` = 85% ocupada. Todo o modelo usa fração; converter para porcentagem
-   * é responsabilidade da camada de tela, nunca do motor.
+   * `0,85` = 85% ocupada. **Pode passar de 1**: a atividade gargalo do robô
+   * está em 1,15, ou seja, a demanda exige 15% mais tempo do que ela tem.
+   *
+   * Fórmula: `tempoCicloMin * demanda / tempoDisponivelMin` — o que, por
+   * identidade, é o mesmo que `demanda / capacidadeDiaria`. Não usa o takt
+   * time.
+   *
+   * Todo o modelo usa fração; converter para porcentagem é responsabilidade da
+   * camada de tela, nunca do motor.
    */
   ocupacao: number
 
@@ -119,9 +132,10 @@ export interface ResultadoGlobal {
   tempoDisponivelMin: number
 
   /**
-   * Eficiência total da linha, como **fração de 0 a 1**.
+   * Eficiência total da linha, como **fração em que 1 é 100%**.
    *
-   * Média das ocupações das atividades. `0,875` = 87,5%.
+   * Média das ocupações das atividades, e por isso também pode passar de 1.
+   * `0,875` = 87,5%.
    */
   eficienciaTotal: number
 
@@ -138,9 +152,10 @@ export interface ResultadoGlobal {
   wipPecas: number
 
   /**
-   * Ocupação média das atividades, como **fração de 0 a 1**.
+   * Ocupação média das atividades, como **fração em que 1 é 100%**.
    *
-   * `0,724` = 72,4%.
+   * `0,724` = 72,4%. Hoje carrega o mesmo valor de
+   * {@link ResultadoGlobal.eficienciaTotal} (`TODO(Fase 5)`).
    */
   ocupacaoMedia: number
 

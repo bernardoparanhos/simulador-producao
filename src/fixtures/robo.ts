@@ -1,139 +1,279 @@
 /**
  * Cenário do robô — a referência da Parada P1.
  *
- * # ATENÇÃO: OS NÚMEROS DO ROBÔ NÃO ESTÃO NESTE REPOSITÓRIO
+ * Dados extraídos da planilha `SIMULADOR DE PRODUÇÃO ROBÔ.xlsm`, abas DADOS
+ * INICIAIS e DADOS (formulário ATIVIDADES). Os resultados esperados estão no
+ * gabarito de `src/engine/__tests__/robo.test.ts`, extraídos da aba RELATÓRIO.
  *
- * Este arquivo é o **lugar** do cenário do robô, não o cenário do robô. Nenhum
- * valor real foi preenchido, porque nenhum valor real existe no projeto: o
- * plano de construção aponta os números para "a especificação viva" e para "o
- * pacote de extração" (`docs/plano-de-construcao.md`), documentos que vivem
- * fora do repositório. Inventar números aqui seria pior do que deixá-los em
- * falta — eles passariam a parecer dados da planilha na hora de comparar na
- * Parada P1.
+ * Montagem de um robô de peças de encaixe, em 15 atividades distribuídas por
+ * três etapas e três linhas de produção.
  *
- * Por isso todo campo numérico vale {@link PENDENTE}, que é `NaN`. A escolha é
- * deliberada: `NaN` contamina toda conta que o toca, então qualquer resultado
- * calculado a partir deste cenário sai visivelmente inválido. Com zeros, o
- * motor devolveria números de aparência plausível e completamente falsos.
+ * ## Particularidades deste cenário, e o que elas não provam
  *
- * ## O que é preciso para fechar a Parada P1
- *
- * Da aba DADOS INICIAIS da planilha do robô:
- *
- * - demanda, tamanho do lote;
- * - tempo de turno, turnos diários, dias ou semanas no mês, periodicidade;
- * - tempo de refeição e refeições por turno, tempo de descanso, troca de turno;
- * - inspeção: porcentagem inspecionada, tempo por peça, mínimo de aprovação;
- * - parada não planejada: qual atividade e quantos minutos.
- *
- * Da aba DADOS (formulário ATIVIDADES), **uma linha por atividade** — e o
- * número de atividades do robô também é desconhecido:
- *
- * - descrição, etapa, linha, processo;
- * - tempo cronometrado, setup;
- * - fator de ritmo, fator de tolerância, número de operadores.
- *
- * Das abas LOGICA PROCESSO e FLUXOGRAMA, o fluxo: quais atividades alimentam
- * quais.
- *
- * E, para o teste comparar, os **resultados** da planilha: tempo padrão, tempo
- * de ciclo, takt time, ocupação, gargalo e estoque final de cada atividade.
- *
- * Enquanto isso não chegar, o motor é verificado contra as próprias fórmulas em
- * `src/engine/__tests__/motor.test.ts`, com o cenário sintético de
- * `src/fixtures/exemplo.ts`. Isso prova que o código implementa as fórmulas
- * recebidas; não prova que as fórmulas batem com a planilha. Só a P1 prova isso.
+ * - **A sequência está vazia.** O fluxograma da planilha não estava preenchido,
+ *   então não há conexões. Consequência: a produção realizada de cada atividade
+ *   é igual à própria capacidade, e a propagação do gargalo pelo grafo não é
+ *   exercitada pela P1 — ela é testada à parte, com o cenário sintético de
+ *   `exemplo.ts`. Esta ausência é, em si, a razão de ser do projeto: na planilha
+ *   o fluxo não alimenta o cálculo.
+ * - **Todas as atividades têm um operador só.** Logo a P1 não resolve a dúvida
+ *   da divergência D-1 (`numOperadores` não entra em nenhuma fórmula): o cenário
+ *   daria o mesmo resultado nas duas leituras.
+ * - **Nenhum parâmetro de inspeção afeta resultado algum.** Os três estão
+ *   preenchidos e nenhum aparece nos números do relatório (divergência D-13).
+ * - **Não há parada não planejada** registrada na planilha.
  */
 
 import type { Atividade, Cenario, EntradaSimulacao, Sequencia } from '@/types'
 
 /**
- * Marcador de valor ausente.
+ * Dados iniciais do robô, da aba DADOS INICIAIS.
  *
- * `NaN` de propósito, para que nenhum resultado calculado a partir do cenário
- * do robô possa ser confundido com um número válido. Ao preencher o cenário,
- * substitua cada ocorrência pelo valor da planilha e apague o `TODO(P1)` da
- * linha.
- */
-export const PENDENTE = Number.NaN
-
-/**
- * Dados iniciais do robô.
+ * Tempo disponível resultante: `(480 - 30 * 2 - 20) * 2 * 7 = 5600` min.
  *
- * TODO(P1): todos os campos numéricos abaixo vêm da aba DADOS INICIAIS da
- * planilha do robô e estão em falta.
+ * TODO(D-10): `tempoDescansoMin` vale 20 min na planilha, mas não entra na
+ * fórmula do tempo disponível — descontá-lo daria 5320, e a planilha mostra
+ * 5600. O campo fica registrado aqui porque é dado real do cenário.
+ *
+ * TODO(D-14): os campos de inspeção estão na unidade do **modelo** — `%` de 0 a
+ * 100. A planilha guarda 0,20 e 0,90, que são células de porcentagem do Excel
+ * (fração), e a conversão para 20 e 90 preserva o significado (20% e 90%). Se o
+ * modelo passar a usar fração nestes campos, é aqui que muda.
  */
 export const cenarioRobo: Cenario = {
-  demanda: PENDENTE,
-  tamanhoLote: PENDENTE,
-  tempoRefeicaoMin: PENDENTE,
-  trocaTurnoMin: PENDENTE,
-  tempoTurnoMin: PENDENTE,
-  numRefeicoesPorTurno: PENDENTE,
-  tempoDescansoMin: PENDENTE,
-  turnosDiarios: PENDENTE,
-  diasOuSemanasNoMes: PENDENTE,
-  // TODO(P1): confirmar a periodicidade do cenário do robô na planilha.
-  periodicidade: 'Diario',
+  demanda: 400,
+  tamanhoLote: 20,
+  tempoRefeicaoMin: 30,
+  trocaTurnoMin: 20,
+  tempoTurnoMin: 480,
+  numRefeicoesPorTurno: 2,
+  tempoDescansoMin: 20,
+  turnosDiarios: 2,
+  diasOuSemanasNoMes: 7,
+  periodicidade: 'Semanal',
   inspecao: {
-    porcentagemInspecionada: PENDENTE,
-    tempoPorPecaMin: PENDENTE,
-    minimoAprovacao: PENDENTE,
+    porcentagemInspecionada: 20,
+    tempoPorPecaMin: 1,
+    minimoAprovacao: 90,
   },
-  // TODO(P1): a planilha tem uma parada não planejada no robô? Em qual
-  // atividade e de quantos minutos? `null` aqui significa "nenhuma", e essa é
-  // uma suposição, não um dado.
   paradaNaoPlanejada: null,
 }
 
 /**
- * Atividades do robô.
+ * As 15 atividades do robô, da aba DADOS (formulário ATIVIDADES).
  *
- * TODO(P1): lista vazia porque **nem a quantidade de atividades do robô é
- * conhecida**. Cada linha do formulário ATIVIDADES da planilha vira um item
- * aqui, com um `id` estável à escolha (ex.: `'rob-01'`).
+ * O `id` reproduz a codificação da planilha: etapa, linha e processo
+ * concatenados. A atividade `'211'`, por exemplo, é a etapa 2, linha 1,
+ * processo 1. A ordem da lista é a da planilha, que agrupa por linha e não por
+ * etapa — por isso `'211'` aparece entre as atividades da linha 1.
+ *
+ * Valores iguais em todas: `setupMin` 1,0, `fatorRitmo` 100%,
+ * `fatorTolerancia` 1%, `numOperadores` 1.
  */
-export const atividadesRobo: Atividade[] = []
+export const atividadesRobo: Atividade[] = [
+  {
+    id: '111',
+    descricao: '1 - SUPORTE SUPERIOR',
+    etapa: 1,
+    linha: 1,
+    processo: 1,
+    tempoCronometradoMin: 6.16,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '112',
+    descricao: '2 - ENCAIXAR 2 S8 EM 2 D2',
+    etapa: 1,
+    linha: 1,
+    processo: 2,
+    tempoCronometradoMin: 15.936,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '211',
+    descricao: '3 - POSICIONAR AS DUAS D4',
+    etapa: 2,
+    linha: 1,
+    processo: 1,
+    tempoCronometradoMin: 8.82,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '121',
+    descricao: '4 - EXTREMIDADE LATERAL',
+    etapa: 1,
+    linha: 2,
+    processo: 1,
+    tempoCronometradoMin: 9.19,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '122',
+    descricao: '5 - ENCAIXAR UMA PEÇA S8 NO TERCEIRO PINO',
+    etapa: 1,
+    linha: 2,
+    processo: 2,
+    tempoCronometradoMin: 4.78,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '123',
+    descricao: '6 - ENCAIXAR UMA PÇ S8 NO SEXTO PINO',
+    etapa: 1,
+    linha: 2,
+    processo: 3,
+    tempoCronometradoMin: 4.204,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '124',
+    descricao: '7 - ENCAIXAR A OUTRA EXTREMIDADE LATERAL',
+    etapa: 1,
+    linha: 2,
+    processo: 4,
+    tempoCronometradoMin: 11.45,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '131',
+    descricao: '8 - BASE CENTRAL: JUNTAR 2 S8',
+    etapa: 1,
+    linha: 3,
+    processo: 1,
+    tempoCronometradoMin: 4.86,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '132',
+    descricao: '9 - ENCAIXAR 1 D4',
+    etapa: 1,
+    linha: 3,
+    processo: 2,
+    tempoCronometradoMin: 9.068,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '133',
+    descricao: '10 - EXTREMIDADE DA BASE',
+    etapa: 1,
+    linha: 3,
+    processo: 3,
+    tempoCronometradoMin: 7.668,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '134',
+    descricao: '11 - JUNTAR BASE CENTRAL',
+    etapa: 1,
+    linha: 3,
+    processo: 4,
+    tempoCronometradoMin: 9.724,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '135',
+    descricao: '12 - ENCAIXAR 2 PEÇAS RL',
+    etapa: 1,
+    linha: 3,
+    processo: 5,
+    tempoCronometradoMin: 12.418,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '221',
+    descricao: '13 - UTILIZANDO OS S8 DA BASE',
+    etapa: 2,
+    linha: 2,
+    processo: 1,
+    tempoCronometradoMin: 13.58,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '311',
+    descricao: '14 - UTILIZANDO OS D4 DO SUPORTE SUPERIOR',
+    etapa: 3,
+    linha: 1,
+    processo: 1,
+    tempoCronometradoMin: 8.944,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+  {
+    id: '312',
+    descricao: '15 - ENCAIXAR AS RODAS',
+    etapa: 3,
+    linha: 1,
+    processo: 2,
+    tempoCronometradoMin: 7.974,
+    setupMin: 1,
+    fatorRitmo: 100,
+    fatorTolerancia: 1,
+    numOperadores: 1,
+  },
+]
 
 /**
- * Sequência do robô.
+ * Sequência do robô: **vazia**.
  *
- * TODO(P1): vazia, à espera das abas LOGICA PROCESSO e FLUXOGRAMA. A estrutura
- * esperada, lembrando que a identidade do nó é o próprio `atividadeId` (ver
- * `docs/decisoes/0002-representacao-da-sequencia.md`):
+ * O fluxograma da planilha não estava preenchido. Não é dado em falta — é o
+ * estado real do arquivo, e é exatamente o problema que o projeto resolve: na
+ * planilha, o fluxo e o cálculo são coisas separadas.
  *
- * ```ts
- * nos: [{ atividadeId: 'rob-01' }, { atividadeId: 'rob-02' }]
- * conexoes: [{ id: 'c1', origem: 'rob-01', destino: 'rob-02' }]
- * ```
+ * Sem conexões, nenhuma atividade tem predecessora, então cada uma produz a
+ * própria capacidade. É o que o gabarito da P1 confirma.
+ *
+ * TODO(P3): montar o fluxo real do robô no construtor de sequência e conferir
+ * que mudar o fluxo muda os números de forma coerente — é a Parada P3 do plano.
  */
 export const sequenciaRobo: Sequencia = {
-  nos: [],
+  nos: atividadesRobo.map((atividade) => ({ atividadeId: atividade.id })),
   conexoes: [],
 }
 
-/**
- * O cenário do robô completo, pronto para `simular()`.
- *
- * TODO(P1): incompleto. Ver o cabeçalho deste arquivo.
- */
+/** O cenário do robô completo, pronto para `simular()`. */
 export const robo: EntradaSimulacao = {
   cenario: cenarioRobo,
   atividades: atividadesRobo,
   sequencia: sequenciaRobo,
-}
-
-/**
- * `true` enquanto o cenário do robô não tiver os dados da planilha.
- *
- * Os testes da Parada P1 consultam esta função para se declararem pendentes em
- * vez de falharem por um motivo que não é culpa do motor. Ela se torna `false`
- * sozinha quando o cenário for preenchido — não há flag para lembrar de virar.
- */
-export function roboEstaPendente(): boolean {
-  return (
-    atividadesRobo.length === 0 ||
-    Object.values(cenarioRobo).some((valor) => typeof valor === 'number' && Number.isNaN(valor)) ||
-    Object.values(cenarioRobo.inspecao).some((valor) => Number.isNaN(valor))
-  )
 }

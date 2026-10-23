@@ -15,15 +15,17 @@ documento é o plano, e não muda por causa do progresso.
 | --- | --- | --- |
 | 0 — Fundação e decisões | concluída | [fase-0.md](fases/fase-0.md) |
 | 1 — Coleta e identidade | concluída (modelo de dados + assets institucionais no projeto) | [fase-1.md](fases/fase-1.md) |
-| 2 — Motor de cálculo | **motor concluído e testado contra as fórmulas**; a Parada P1 **não rodou** por falta dos dados do robô | [fase-2.md](fases/fase-2.md) |
+| 2 — Motor de cálculo | concluída | [fase-2.md](fases/fase-2.md) |
+| **P1 — Parada de teste** | **aprovada**: 49/49 testes, as 15 atividades do robô batendo com a planilha | [fase-2.md](fases/fase-2.md) |
 | 3 a 8 | não iniciadas | — |
 
-**Bloqueio da Parada P1.** Os números do robô (dados de entrada e resultados
-esperados) não estão no repositório — este plano os aponta para "a especificação
-viva" e "o pacote de extração", que vivem fora daqui. Nada foi inventado:
-`src/fixtures/robo.ts` está estruturado e vazio, com cada campo marcado como
-pendente. A lista do que falta, campo por campo, está no cabeçalho daquele
-arquivo e em [fase-2.md](fases/fase-2.md).
+**A Parada P1 corrigiu três coisas** na primeira entrega do motor: o tempo
+disponível não desconta o descanso (D-10), a ocupação não usa o takt time
+(D-11) e a inspeção não entra no tempo de ciclo (D-13). Duas divergências que
+mexem nos números seguem abertas porque o cenário do robô não as exercita:
+`numOperadores` fora das fórmulas (D-1, vai ao cenário do trem na Fase 7) e a
+grandeza que propaga pela sequência (D-3, vai à **Parada P3**, porque o
+fluxograma da planilha estava vazio).
 
 Documentos de referência produzidos até aqui:
 
@@ -37,8 +39,9 @@ Documentos de referência produzidos até aqui:
   — o que o motor faz quando a fórmula recebida e o modelo de dados não
   conversam, e por que ele não valida a entrada.
 
-As divergências entre as fórmulas da planilha e o modelo de dados — nove pontos,
-com impacto estimado em cada número — estão em [fase-2.md](fases/fase-2.md).
+As divergências entre as fórmulas da planilha e o modelo de dados — quinze
+pontos, seis resolvidos pela P1 e nove abertos, com impacto estimado em cada
+número — estão em [fase-2.md](fases/fase-2.md).
 Perguntas abertas do modelo, no fim de [modelo-de-dados.md](modelo-de-dados.md).
 
 ## Objetivo e norte

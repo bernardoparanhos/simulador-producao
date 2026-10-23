@@ -1,16 +1,14 @@
 /**
- * Verificação do motor contra as fórmulas recebidas.
+ * Verificação do motor contra as fórmulas.
  *
- * O que estes testes provam: o código implementa exatamente as fórmulas do
- * briefing da Fase 2, e a sequência dirige a produção como decidido.
+ * Complementar a `robo.test.ts`, que compara com a planilha. Aqui o cenário é
+ * sintético (`src/fixtures/exemplo.ts`) e serve para exercitar o que o caso real
+ * do robô não exercita: a **propagação do gargalo pela sequência**, porque o
+ * fluxograma da planilha estava vazio. Também cobre as bordas (lista vazia,
+ * ciclo no grafo, conexão órfã) e os limites exatos das faixas de ocupação.
  *
- * O que estes testes **não** provam: que as fórmulas batem com a planilha. Essa
- * é a Parada P1, em `robo.test.ts`, e depende dos números do robô. Enquanto a
- * P1 não rodar, este arquivo é a única rede de segurança do motor — qualquer
- * refatoração que mude um número aparece aqui.
- *
- * Os valores esperados foram conferidos à mão a partir do cenário sintético de
- * `src/fixtures/exemplo.ts`, cujo cabeçalho mostra a tabela completa.
+ * Os valores esperados foram conferidos à mão; a tabela completa está no
+ * cabeçalho de `src/fixtures/exemplo.ts`.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -31,6 +29,9 @@ import type { Atividade, ResultadoPorAtividade } from '@/types'
 /** Precisão usada nas comparações de ponto flutuante: nove casas decimais. */
 const CASAS = 9
 
+/** Tempo disponível do cenário de exemplo: `(480 - 60 - 10) * 1 * 1`. */
+const DISPONIVEL = 410
+
 /** Localiza o resultado de uma atividade pelo id — nunca pelo índice. */
 function resultadoDe(
   resultados: readonly ResultadoPorAtividade[],
@@ -42,20 +43,27 @@ function resultadoDe(
 }
 
 describe('calcularTempoDisponivel', () => {
-  it('desconta refeições, descanso e troca de turno do turno bruto', () => {
-    // (480 - 60*1 - 20 - 10) * 1 turno * 1 dia = 390
-    expect(calcularTempoDisponivel(cenarioExemplo)).toBe(390)
+  it('desconta refeições e troca de turno, mas NÃO o descanso (D-10)', () => {
+    // (480 - 60*1 - 10) * 1 turno * 1 dia = 410
+    expect(calcularTempoDisponivel(cenarioExemplo)).toBe(DISPONIVEL)
+
+    // O campo existe no cenário e não afeta o resultado. A planilha do robô
+    // confirma: descontar o descanso daria 5320, e ela mostra 5600.
+    const semDescanso = { ...cenarioExemplo, tempoDescansoMin: 0 }
+    const comMuitoDescanso = { ...cenarioExemplo, tempoDescansoMin: 120 }
+    expect(calcularTempoDisponivel(semDescanso)).toBe(DISPONIVEL)
+    expect(calcularTempoDisponivel(comMuitoDescanso)).toBe(DISPONIVEL)
   })
 
   it('multiplica pelos turnos diários', () => {
     const doisTurnos = { ...cenarioExemplo, turnosDiarios: 2 }
-    expect(calcularTempoDisponivel(doisTurnos)).toBe(780)
+    expect(calcularTempoDisponivel(doisTurnos)).toBe(820)
   })
 
   it('conta duas refeições quando o turno concede duas', () => {
     const duasRefeicoes = { ...cenarioExemplo, numRefeicoesPorTurno: 2 }
-    // 480 - 60*2 - 20 - 10 = 330
-    expect(calcularTempoDisponivel(duasRefeicoes)).toBe(330)
+    // 480 - 60*2 - 10 = 350
+    expect(calcularTempoDisponivel(duasRefeicoes)).toBe(350)
   })
 })
 
@@ -64,17 +72,28 @@ describe('calcularDiasNoPeriodo', () => {
     expect(calcularDiasNoPeriodo('Diario', 20)).toBe(20)
   })
 
-  it('converte semanas em dias a 5 dias úteis por semana', () => {
-    expect(calcularDiasNoPeriodo('Semanal', 4)).toBe(20)
+  it('usa o valor direto para semanal, sem fator de dias úteis (D-12)', () => {
+    // O briefing da Fase 2 dizia x5. O robô provou que não: periodicidade
+    // 'Semanal' com valor 7 dá 5600 min, que é 400 * 2 * 7.
+    expect(calcularDiasNoPeriodo('Semanal', 4)).toBe(4)
   })
 
-  it('converte meses em dias a 22 dias úteis por mês', () => {
+  it('multiplica por 22 dias úteis quando a periodicidade é mensal', () => {
+    // TODO(D-12): o fator 22 não foi verificado contra a planilha — nenhum
+    // cenário mensal foi extraído.
     expect(calcularDiasNoPeriodo('Mensal', 1)).toBe(22)
   })
 
-  it('a periodicidade multiplica o tempo disponível', () => {
-    expect(calcularTempoDisponivel({ ...cenarioExemplo, periodicidade: 'Semanal' })).toBe(1950)
-    expect(calcularTempoDisponivel({ ...cenarioExemplo, periodicidade: 'Mensal' })).toBe(8580)
+  it('diário e semanal dão o mesmo tempo disponível; mensal multiplica por 22', () => {
+    const tresPeriodos = { ...cenarioExemplo, diasOuSemanasNoMes: 3 }
+
+    const diario = calcularTempoDisponivel({ ...tresPeriodos, periodicidade: 'Diario' })
+    const semanal = calcularTempoDisponivel({ ...tresPeriodos, periodicidade: 'Semanal' })
+    const mensal = calcularTempoDisponivel({ ...tresPeriodos, periodicidade: 'Mensal' })
+
+    expect(diario).toBe(DISPONIVEL * 3)
+    expect(semanal).toBe(diario) // consequência de D-12
+    expect(mensal).toBe(DISPONIVEL * 3 * 22)
   })
 })
 
@@ -83,68 +102,90 @@ describe('calcularAtividade', () => {
 
   it('aplica fator de ritmo e fator de tolerância ao tempo cronometrado', () => {
     const comFatores: Atividade = { ...primeira, fatorRitmo: 102, fatorTolerancia: 7 }
-    const resultado = calcularAtividade(comFatores, cenarioExemplo, 390)
+    const resultado = calcularAtividade(comFatores, cenarioExemplo, DISPONIVEL)
 
     // 1 * 1,02 * 1,07 = 1,0914
     expect(resultado.tempoPadraoMin).toBeCloseTo(1.0914, CASAS)
   })
 
   it('dilui o setup no tamanho do lote, dentro do tempo de ciclo', () => {
-    const resultado = calcularAtividade(primeira, cenarioExemplo, 390)
+    const resultado = calcularAtividade(primeira, cenarioExemplo, DISPONIVEL)
 
     expect(resultado.tempoPadraoMin).toBe(1)
     expect(resultado.tempoCicloMin).toBe(1.5) // 1 + 10/20
   })
 
   it('calcula takt, ciclos, capacidade, ocupação e tempo de lote', () => {
-    const resultado = calcularAtividade(primeira, cenarioExemplo, 390)
+    const resultado = calcularAtividade(primeira, cenarioExemplo, DISPONIVEL)
 
-    expect(resultado.taktTimeMin).toBeCloseTo(2.4375, CASAS) // (390 / (20*480)) * 60
-    expect(resultado.quantidadeCiclos).toBe(24) // 480 / 20
-    expect(resultado.capacidadeDiaria).toBeCloseTo(260, CASAS) // 390 / 1,5
-    expect(resultado.ocupacao).toBeCloseTo(1.5 / 2.4375, CASAS)
-    expect(resultado.tempoProducaoLoteMin).toBeCloseTo(36, CASAS) // 1,5 * 24
+    expect(resultado.taktTimeMin).toBeCloseTo(5.125, CASAS) // (410 / (20*240)) * 60
+    expect(resultado.quantidadeCiclos).toBe(12) // 240 / 20
+    expect(resultado.capacidadeDiaria).toBeCloseTo(410 / 1.5, CASAS) // 273,33
+    expect(resultado.ocupacao).toBeCloseTo(360 / 410, CASAS) // (1,5 * 240) / 410
+    expect(resultado.tempoProducaoLoteMin).toBeCloseTo(18, CASAS) // 1,5 * 12
+  })
+
+  it('a ocupação NÃO usa o takt time (D-11)', () => {
+    const resultado = calcularAtividade(primeira, cenarioExemplo, DISPONIVEL)
+
+    // A fórmula é tempoCiclo * demanda / tempoDisponivel, que por identidade é
+    // demanda / capacidade. Até a P1 o motor dividia pelo takt, o que dava
+    // valores 3 vezes menores no cenário do robô.
+    expect(resultado.ocupacao).toBeCloseTo(
+      cenarioExemplo.demanda / resultado.capacidadeDiaria,
+      CASAS,
+    )
+    expect(resultado.ocupacao).not.toBeCloseTo(
+      resultado.tempoCicloMin / resultado.taktTimeMin,
+      CASAS,
+    )
   })
 
   it('não inclui producaoRealizada, estoque nem gargalo: eles dependem do fluxo', () => {
-    const resultado = calcularAtividade(primeira, cenarioExemplo, 390)
+    const resultado = calcularAtividade(primeira, cenarioExemplo, DISPONIVEL)
 
     expect(resultado).not.toHaveProperty('producaoRealizadaDiaria')
     expect(resultado).not.toHaveProperty('estoqueFinal')
     expect(resultado).not.toHaveProperty('ehGargalo')
   })
 
-  it('ignora numOperadores — divergência registrada em TODO(P1)', () => {
+  it('ignora numOperadores — divergência D-1, ainda aberta', () => {
     const doisOperadores: Atividade = { ...primeira, numOperadores: 2 }
-    const um = calcularAtividade(primeira, cenarioExemplo, 390)
-    const dois = calcularAtividade(doisOperadores, cenarioExemplo, 390)
+    const um = calcularAtividade(primeira, cenarioExemplo, DISPONIVEL)
+    const dois = calcularAtividade(doisOperadores, cenarioExemplo, DISPONIVEL)
 
     // Se o campo passar a dividir o tempo de ciclo, este teste falha de
-    // propósito: é o alarme de que a decisão da P1 foi aplicada.
+    // propósito: é o alarme de que a decisão foi aplicada. A P1 não resolveu a
+    // dúvida porque todas as atividades do robô têm um operador só.
     expect(dois.tempoCicloMin).toBe(um.tempoCicloMin)
   })
 })
 
-describe('inspeção (premissa do motor, não fórmula da planilha)', () => {
-  it('não custa nada quando a porcentagem inspecionada é zero', () => {
-    expect(calcularTempoInspecaoPorPecaMin(cenarioExemplo.inspecao)).toBe(0)
-  })
-
-  it('cobra o tempo médio por peça produzida, proporcional à porcentagem', () => {
+describe('inspeção', () => {
+  it('o tempo por peça é proporcional à porcentagem inspecionada', () => {
     // 2 min por peça, metade das peças = 1 min por peça produzida
     expect(
       calcularTempoInspecaoPorPecaMin({ ...cenarioExemplo.inspecao, porcentagemInspecionada: 50 }),
     ).toBe(1)
   })
 
-  it('entra no tempo de ciclo da atividade', () => {
+  it('não custa nada quando a porcentagem inspecionada é zero', () => {
+    expect(calcularTempoInspecaoPorPecaMin(cenarioExemplo.inspecao)).toBe(0)
+  })
+
+  it('NÃO entra no tempo de ciclo da atividade (D-13)', () => {
     const comInspecao = {
       ...cenarioExemplo,
       inspecao: { ...cenarioExemplo.inspecao, porcentagemInspecionada: 50 },
     }
-    const resultado = calcularAtividade(atividadesExemplo[0] as Atividade, comInspecao, 390)
+    const semInspecao = calcularAtividade(atividadesExemplo[0] as Atividade, cenarioExemplo, DISPONIVEL)
+    const resultado = calcularAtividade(atividadesExemplo[0] as Atividade, comInspecao, DISPONIVEL)
 
-    expect(resultado.tempoCicloMin).toBe(2.5) // 1 + 10/20 + 1
+    // Na Fase 2 o motor somava a parcela aqui, como premissa. A P1 provou que a
+    // planilha não faz isso: o tempo de ciclo de '111' é exatamente
+    // 6,2216 + 1/20 = 6,2716, sem folga para parcela alguma.
+    expect(resultado.tempoCicloMin).toBe(semInspecao.tempoCicloMin)
+    expect(resultado.tempoCicloMin).toBe(1.5)
   })
 
   it('a taxa de aprovação é determinística e igual ao mínimo', () => {
@@ -170,34 +211,34 @@ describe('classificarOcupacao', () => {
 })
 
 describe('propagarGargalo', () => {
-  const isolados = atividadesExemplo.map((a) => calcularAtividade(a, cenarioExemplo, 390))
+  const isolados = atividadesExemplo.map((a) => calcularAtividade(a, cenarioExemplo, DISPONIVEL))
 
   it('atividades sem predecessoras produzem a própria capacidade', () => {
     const producao = propagarGargalo(isolados, sequenciaExemplo)
 
-    expect(producao.get('ex-01')).toBeCloseTo(260, CASAS)
-    expect(producao.get('ex-02')).toBeCloseTo(195, CASAS)
+    expect(producao.get('ex-01')).toBeCloseTo(410 / 1.5, CASAS)
+    expect(producao.get('ex-02')).toBeCloseTo(205, CASAS)
   })
 
   it('no afunilamento vale a MENOR das que chegam, não a soma', () => {
     const producao = propagarGargalo(isolados, sequenciaExemplo)
 
-    // ex-03 tem capacidade 780 e recebe de ex-01 (260) e ex-02 (195).
-    // Soma seria 455; a regra é o mínimo: 195.
-    expect(producao.get('ex-03')).toBeCloseTo(195, CASAS)
+    // ex-03 tem capacidade 820 e recebe de ex-01 (273,33) e ex-02 (205).
+    // Soma seria 478,33; a regra é o mínimo: 205.
+    expect(producao.get('ex-03')).toBeCloseTo(205, CASAS)
   })
 
   it('propaga o gargalo por toda a cadeia a jusante, não só um passo', () => {
     const producao = propagarGargalo(isolados, sequenciaExemplo)
 
-    // ex-04 tem capacidade 390 e vem depois de ex-03, que já caiu para 195.
-    expect(producao.get('ex-04')).toBeCloseTo(195, CASAS)
+    // ex-04 tem capacidade 410 e vem depois de ex-03, que já caiu para 205.
+    expect(producao.get('ex-04')).toBeCloseTo(205, CASAS)
   })
 
   it('atividade fora da sequência produz a própria capacidade', () => {
     const producao = propagarGargalo(isolados, { nos: [], conexoes: [] })
 
-    expect(producao.get('ex-03')).toBeCloseTo(780, CASAS)
+    expect(producao.get('ex-03')).toBeCloseTo(820, CASAS)
   })
 
   it('ignora conexões que apontam para atividades inexistentes', () => {
@@ -209,7 +250,7 @@ describe('propagarGargalo', () => {
       ],
     })
 
-    expect(producao.get('ex-04')).toBeCloseTo(195, CASAS)
+    expect(producao.get('ex-04')).toBeCloseTo(205, CASAS)
     expect(producao.size).toBe(4)
   })
 
@@ -222,7 +263,7 @@ describe('propagarGargalo', () => {
       ],
     })
 
-    expect(producao.get('ex-04')).toBeCloseTo(195, CASAS)
+    expect(producao.get('ex-04')).toBeCloseTo(205, CASAS)
   })
 
   it('não trava diante de um ciclo, e resolve todas as atividades', () => {
@@ -251,9 +292,9 @@ describe('simular — cenário de exemplo de ponta a ponta', () => {
   })
 
   it('tempo disponível e takt time', () => {
-    expect(global.tempoDisponivelMin).toBe(390)
+    expect(global.tempoDisponivelMin).toBe(DISPONIVEL)
     for (const resultado of porAtividade) {
-      expect(resultado.taktTimeMin).toBeCloseTo(2.4375, CASAS)
+      expect(resultado.taktTimeMin).toBeCloseTo(5.125, CASAS)
     }
   })
 
@@ -266,10 +307,10 @@ describe('simular — cenário de exemplo de ponta a ponta', () => {
 
   it('capacidades e produções realizadas', () => {
     const esperado = [
-      { id: 'ex-01', capacidade: 260, producao: 260 },
-      { id: 'ex-02', capacidade: 195, producao: 195 },
-      { id: 'ex-03', capacidade: 780, producao: 195 },
-      { id: 'ex-04', capacidade: 390, producao: 195 },
+      { id: 'ex-01', capacidade: 410 / 1.5, producao: 410 / 1.5 },
+      { id: 'ex-02', capacidade: 205, producao: 205 },
+      { id: 'ex-03', capacidade: 820, producao: 205 },
+      { id: 'ex-04', capacidade: 410, producao: 205 },
     ]
 
     for (const { id, capacidade, producao } of esperado) {
@@ -279,21 +320,28 @@ describe('simular — cenário de exemplo de ponta a ponta', () => {
     }
   })
 
-  it('ocupação e status de cada atividade', () => {
-    expect(resultadoDe(porAtividade, 'ex-01').ocupacao).toBeCloseTo(0.615384615, CASAS)
-    expect(resultadoDe(porAtividade, 'ex-02').ocupacao).toBeCloseTo(0.820512821, CASAS)
-    expect(resultadoDe(porAtividade, 'ex-03').ocupacao).toBeCloseTo(0.205128205, CASAS)
-    expect(resultadoDe(porAtividade, 'ex-04').ocupacao).toBeCloseTo(0.41025641, CASAS)
+  it('ocupação e status cobrem as três faixas', () => {
+    const esperado = [
+      { id: 'ex-01', ocupacao: 360 / 410, status: 'atencao' },
+      { id: 'ex-02', ocupacao: 480 / 410, status: 'acima' },
+      { id: 'ex-03', ocupacao: 120 / 410, status: 'ok' },
+      { id: 'ex-04', ocupacao: 240 / 410, status: 'ok' },
+    ]
 
-    for (const resultado of porAtividade) {
-      expect(resultado.statusOcupacao).toBe('ok')
+    for (const { id, ocupacao, status } of esperado) {
+      const resultado = resultadoDe(porAtividade, id)
+      expect(resultado.ocupacao).toBeCloseTo(ocupacao, CASAS)
+      expect(resultado.statusOcupacao).toBe(status)
     }
   })
 
-  it('estoque final é a produção menos a demanda, e fica negativo quando falta', () => {
-    expect(resultadoDe(porAtividade, 'ex-01').estoqueFinal).toBeCloseTo(260 - 480, CASAS)
-    expect(resultadoDe(porAtividade, 'ex-02').estoqueFinal).toBeCloseTo(195 - 480, CASAS)
-    expect(resultadoDe(porAtividade, 'ex-04').estoqueFinal).toBeCloseTo(195 - 480, CASAS)
+  it('estoque final é a produção menos a demanda, e tem os dois sinais', () => {
+    // ex-01 produz mais do que a demanda (sobra); as outras três, limitadas pelo
+    // gargalo, produzem menos (falta).
+    expect(resultadoDe(porAtividade, 'ex-01').estoqueFinal).toBeCloseTo(410 / 1.5 - 240, CASAS)
+    expect(resultadoDe(porAtividade, 'ex-01').estoqueFinal).toBeGreaterThan(0)
+    expect(resultadoDe(porAtividade, 'ex-02').estoqueFinal).toBeCloseTo(-35, CASAS)
+    expect(resultadoDe(porAtividade, 'ex-04').estoqueFinal).toBeCloseTo(-35, CASAS)
   })
 
   it('o gargalo é a atividade de menor capacidade, e só ela', () => {
@@ -302,16 +350,22 @@ describe('simular — cenário de exemplo de ponta a ponta', () => {
   })
 
   it('indicadores globais', () => {
-    expect(global.maiorTempoProducaoMin).toBeCloseTo(48, CASAS) // ex-02: 2 * 24
-    expect(global.leadTimeMin).toBeCloseTo(48, CASAS) // alias por ora
-    expect(global.eficienciaTotal).toBeCloseTo(0.512820513, CASAS) // média das ocupações
+    expect(global.maiorTempoProducaoMin).toBeCloseTo(24, CASAS) // ex-02: 2 * 12
+    expect(global.leadTimeMin).toBeCloseTo(24, CASAS) // alias por ora
+    expect(global.eficienciaTotal).toBeCloseTo(1200 / 410 / 4, CASAS) // média das ocupações
     expect(global.ocupacaoMedia).toBe(global.eficienciaTotal) // alias por ora
-    expect(global.wipPecas).toBeCloseTo(480, CASAS) // reduz-se à demanda
+    expect(global.wipPecas).toBeCloseTo(240, CASAS) // reduz-se à demanda
   })
 
-  it('eficiência e ocupação média são frações de 0 a 1, não porcentagens', () => {
-    expect(global.eficienciaTotal).toBeLessThanOrEqual(1)
-    expect(global.ocupacaoMedia).toBeLessThanOrEqual(1)
+  it('a ocupação é fração, não porcentagem — e pode passar de 1', () => {
+    // 1 significa 100%. Uma atividade sobrecarregada passa de 1: ex-02 está em
+    // 1,17, e no robô a atividade gargalo está em 1,15. Converter para % é
+    // trabalho da tela.
+    expect(resultadoDe(porAtividade, 'ex-02').ocupacao).toBeGreaterThan(1)
+
+    const media =
+      porAtividade.reduce((soma, r) => soma + r.ocupacao, 0) / porAtividade.length
+    expect(global.eficienciaTotal).toBeCloseTo(media, CASAS)
   })
 
   it('é pura: a mesma entrada devolve sempre o mesmo resultado', () => {
@@ -328,7 +382,7 @@ describe('simular — casos de borda', () => {
     })
 
     expect(porAtividade).toEqual([])
-    expect(global.tempoDisponivelMin).toBe(390)
+    expect(global.tempoDisponivelMin).toBe(DISPONIVEL)
     expect(global.gargaloAtividadeId).toBeNull()
     expect(global.eficienciaTotal).toBe(0)
     expect(global.ocupacaoMedia).toBe(0)
@@ -346,7 +400,7 @@ describe('simular — casos de borda', () => {
 
     expect(global.gargaloAtividadeId).toBe('ex-01')
     expect(porAtividade[0]?.ehGargalo).toBe(true)
-    expect(porAtividade[0]?.producaoRealizadaDiaria).toBeCloseTo(260, CASAS)
+    expect(porAtividade[0]?.producaoRealizadaDiaria).toBeCloseTo(410 / 1.5, CASAS)
   })
 
   it('mudar o fluxo muda os números — é o ponto do projeto', () => {
@@ -359,14 +413,14 @@ describe('simular — casos de borda', () => {
       },
     })
 
-    // Sem ex-02 alimentando ex-03, o limite de ex-03 passa a ser ex-01 (260).
+    // Sem ex-02 alimentando ex-03, o limite de ex-03 passa a ser ex-01 (273,33).
     expect(resultadoDe(emCadeia.porAtividade, 'ex-03').producaoRealizadaDiaria).toBeCloseTo(
-      260,
+      410 / 1.5,
       CASAS,
     )
     // E ex-04, agora sem predecessora, volta à própria capacidade.
     expect(resultadoDe(emCadeia.porAtividade, 'ex-04').producaoRealizadaDiaria).toBeCloseTo(
-      390,
+      410,
       CASAS,
     )
   })
