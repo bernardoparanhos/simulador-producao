@@ -14,9 +14,16 @@ documento é o plano, e não muda por causa do progresso.
 | Fase | Estado | Registro |
 | --- | --- | --- |
 | 0 — Fundação e decisões | concluída | [fase-0.md](fases/fase-0.md) |
-| 1 — Coleta e identidade | **modelo de dados concluído**; assets institucionais pendentes (serão fornecidos) | [fase-1.md](fases/fase-1.md) |
-| 2 — Motor de cálculo | não iniciada (aguardando aprovação da Fase 1) | — |
+| 1 — Coleta e identidade | concluída (modelo de dados + assets institucionais no projeto) | [fase-1.md](fases/fase-1.md) |
+| 2 — Motor de cálculo | **motor concluído e testado contra as fórmulas**; a Parada P1 **não rodou** por falta dos dados do robô | [fase-2.md](fases/fase-2.md) |
 | 3 a 8 | não iniciadas | — |
+
+**Bloqueio da Parada P1.** Os números do robô (dados de entrada e resultados
+esperados) não estão no repositório — este plano os aponta para "a especificação
+viva" e "o pacote de extração", que vivem fora daqui. Nada foi inventado:
+`src/fixtures/robo.ts` está estruturado e vazio, com cada campo marcado como
+pendente. A lista do que falta, campo por campo, está no cabeçalho daquele
+arquivo e em [fase-2.md](fases/fase-2.md).
 
 Documentos de referência produzidos até aqui:
 
@@ -26,9 +33,13 @@ Documentos de referência produzidos até aqui:
 - [decisoes/0001-escolha-da-stack.md](decisoes/0001-escolha-da-stack.md)
 - [decisoes/0002-representacao-da-sequencia.md](decisoes/0002-representacao-da-sequencia.md)
   — como a sequência de atividades foi representada (grafo dirigido) e por quê.
+- [decisoes/0003-premissas-do-motor-de-calculo.md](decisoes/0003-premissas-do-motor-de-calculo.md)
+  — o que o motor faz quando a fórmula recebida e o modelo de dados não
+  conversam, e por que ele não valida a entrada.
 
-Perguntas abertas que valem decidir antes de a Fase 2 congelar as unidades
-estão no fim de [modelo-de-dados.md](modelo-de-dados.md).
+As divergências entre as fórmulas da planilha e o modelo de dados — nove pontos,
+com impacto estimado em cada número — estão em [fase-2.md](fases/fase-2.md).
+Perguntas abertas do modelo, no fim de [modelo-de-dados.md](modelo-de-dados.md).
 
 ## Objetivo e norte
 

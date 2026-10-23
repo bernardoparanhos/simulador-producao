@@ -4,9 +4,11 @@ Referência das entidades do Simulador de Produção: o que cada campo significa
 em que unidade está e de onde na planilha ele veio.
 
 - **Código:** [`src/types/`](../src/types/)
-- **Fase:** 1
+- **Fase:** 1, revisado na Fase 2
 - **Escopo:** só formas de dados. Nenhuma fórmula, nenhuma validação, nenhuma
-  tela. O motor de cálculo é a Fase 2.
+  tela. As fórmulas que consomem este modelo estão no motor
+  ([`src/engine/`](../src/engine/)) e documentadas em
+  [`docs/fases/fase-2.md`](fases/fase-2.md).
 
 ## Princípios
 
@@ -16,14 +18,19 @@ em que unidade está e de onde na planilha ele veio.
 2. **A unidade está no nome do campo.** O sufixo `Min` quer dizer minutos.
    Onde o nome não cabe a unidade, ela está no JSDoc — e está em *todos* os
    campos, sem exceção.
-3. **Entrada e resultado não se misturam.** O que a pessoa preenche está em
+3. **Grandeza relativa é sempre fração de 0 a 1.** Ocupação, eficiência e
+   ocupação média usam `0,85`, nunca `85`. A exceção são os fatores de entrada
+   (`fatorRitmo`, `fatorTolerancia`, os campos de inspeção), que ficam em
+   porcentagem porque é o que a pessoa digita e confere contra a planilha.
+   Formatar para exibição é trabalho da tela, nunca do motor.
+4. **Entrada e resultado não se misturam.** O que a pessoa preenche está em
    `Cenario`, `Atividade` e `Sequencia`; o que o motor calcula está em
    `ResultadoPorAtividade` e `ResultadoGlobal`. Por isso o **tempo disponível**
    está nos resultados, e não no cenário: ele é calculado, não informado.
-4. **Nada de lógica nos tipos.** Sem `enum` (o projeto usa
+5. **Nada de lógica nos tipos.** Sem `enum` (o projeto usa
    `erasableSyntaxOnly`), sem classes, sem funções auxiliares. São descrições de
    forma, e nada mais.
-5. **Identificadores estáveis e opacos.** `AtividadeId` e `ConexaoId` são
+6. **Identificadores estáveis e opacos.** `AtividadeId` e `ConexaoId` são
    `string`, geradas uma vez e nunca alteradas. Nada no sistema depende do
    formato delas. Isso é o que permite renomear uma atividade sem quebrar as
    conexões do fluxo nem os resultados que apontam para ela.
@@ -201,7 +208,7 @@ Nada aqui é preenchido pela pessoa.
 | `taktTimeMin` | min/unid. | Ritmo exigido pela demanda |
 | `tempoProducaoLoteMin` | min | Tempo para um lote inteiro, com setup |
 | `ocupacao` | **fração 0..1** | `0,85` = 85% |
-| `statusOcupacao` | — | `ok`, `atencao` ou `acima` |
+| `statusOcupacao` | — | `ok` (< 0,85), `atencao` (< 1,00), `acima` (>= 1,00) |
 | `quantidadeCiclos` | — | Ciclos executados no período |
 | `producaoRealizadaDiaria` | unid./dia | O que de fato sai, limitado pelo gargalo |
 | `estoqueFinal` | unid. | Sobra na saída da atividade |
@@ -212,28 +219,27 @@ Nada aqui é preenchido pela pessoa.
 | Campo | Unidade | O que é |
 | --- | --- | --- |
 | `tempoDisponivelMin` | min | **Calculado** a partir da jornada do cenário |
-| `eficienciaTotal` | **%** | Ex.: `87.5` |
-| `leadTime` | min | Tempo de uma unidade atravessar o fluxo todo |
-| `wip` | unid. | Material em processamento |
-| `ocupacaoMedia` | **%** | Ex.: `72.4` |
+| `eficienciaTotal` | **fração 0..1** | Média das ocupações. `0,875` = 87,5% |
+| `leadTimeMin` | min | Tempo de uma unidade atravessar o fluxo todo |
+| `wipPecas` | unid. | Material em processamento |
+| `ocupacaoMedia` | **fração 0..1** | `0,724` = 72,4% |
 | `gargaloAtividadeId` | — | A atividade gargalo, ou nulo se não houver fluxo |
 | `maiorTempoProducaoMin` | min | Maior tempo de lote; é o da atividade gargalo |
 
 Decisões e pontos abertos neste bloco:
 
-- **`ocupacao` é fração (0..1) e `ocupacaoMedia` é porcentagem.** As duas
-  unidades vêm do inventário extraído da planilha e foram mantidas como estão,
-  mas a divergência é incômoda e está marcada para revisão. A formatação para
-  exibição é responsabilidade da tela, nunca do motor.
-- **`leadTime` e `wip` seguem sem sufixo de unidade**, ao contrário do resto do
-  modelo. Os nomes foram mantidos exatamente como no inventário da planilha; a
-  unidade está no JSDoc. Renomear para `leadTimeMin` fica como pergunta aberta.
+- **Tudo relativo é fração de 0 a 1** (decidido na Fase 2): `ocupacao`,
+  `eficienciaTotal` e `ocupacaoMedia`. Antes, as duas últimas estavam em
+  porcentagem.
+- **`leadTime` virou `leadTimeMin` e `wip` virou `wipPecas`** (Fase 2), para
+  seguir a convenção de unidade no nome que vale para o resto do modelo.
 - **`ehGargalo` é redundante com `gargaloAtividadeId`**, de propósito: evita que
   cada linha da tabela de resultados precise consultar o resultado global para
   saber se deve se destacar.
-- **`statusOcupacao` existe, mas as faixas de corte não.** Elas saem da planilha
-  do robô, na Fase 2; até lá, `TODO` no código e nenhum código deve assumir
-  valores.
+- **As faixas de `statusOcupacao` são provisórias.** O motor aplica `ok`
+  abaixo de 0,85, `atencao` abaixo de 1,00 e `acima` de 1,00 para cima, valores
+  definidos no briefing da Fase 2 e ainda não confirmados contra a planilha
+  (`TODO(Fase 5)`).
 - **`gargaloAtividadeId` é anulável:** sem atividades no fluxo não há gargalo a
   apontar.
 
@@ -257,21 +263,29 @@ FLUXOGRAMA — colapsam em **uma** estrutura, `Sequencia`. Era o ponto da
 mudança: o desenho e a lógica deixam de ser coisas separadas, e passam a ser o
 dado que dirige o cálculo.
 
+## Perguntas resolvidas na Fase 2
+
+1. **Unidades** — tudo que é relativo virou fração de 0 a 1.
+2. **Nomes** — `leadTime` → `leadTimeMin`, `wip` → `wipPecas`.
+3. **Afunilamento** — vale a **menor** capacidade entre as que chegam, não a
+   soma. Nenhum campo novo em `ConexaoSequencia`.
+4. **`processo`** — existe no modelo, mas não dirige cálculo. O motor o ignora.
+5. **Inspeção** — determinística: a aprovação é sempre `minimoAprovacao`, sem
+   sorteio, e o tempo de inspeção entra no tempo de ciclo.
+
 ## Perguntas abertas
 
-Nada aqui bloqueia a Fase 2, mas vale decidir antes de o motor congelar as
-unidades:
+Campos que o modelo define mas nenhuma fórmula consome, descobertos ao
+implementar o motor. A lista completa, com impacto estimado, está em
+[`docs/fases/fase-2.md`](fases/fase-2.md); em resumo:
 
-1. **`ocupacao` em fração e `ocupacaoMedia` em porcentagem** — unificar as duas
-   em fração (e formatar só na tela) ou manter como no inventário?
-2. **`leadTime` e `wip` sem sufixo de unidade** — renomear para `leadTimeMin`,
-   seguindo a convenção do resto do modelo?
-3. **Afunilamento:** quando várias atividades alimentam a mesma, a produção
-   soma, ou há uma proporção por conexão? Se houver, ela entra como campo de
-   `ConexaoSequencia`.
-4. **`processo`:** confirmar que os cenários do v1 (robô e trem) têm um único
-   processo, ou se o campo precisa realmente dirigir algo no cálculo.
-5. **Inspeção:** a planilha sorteia a aprovação. O modelo guarda apenas os
-   parâmetros (`minimoAprovacao`), sem campo de resultado da inspeção, porque a
-   decisão entre determinístico e aleatório está aberta no plano. Se a inspeção
-   virar um resultado, ela ganha campos em `ResultadoGlobal`.
+1. **`numOperadores`** não entra em nenhuma fórmula, embora o modelo o defina
+   como postos em paralelo. Deveria dividir o tempo de ciclo?
+2. **`paradaNaoPlanejada`** não entra em nenhuma fórmula e não tem campo de
+   resultado. Hoje é entrada inerte.
+3. **`inspecao.minimoAprovacao`** é calculada e não usada. A produção realizada
+   deve ser multiplicada pela taxa de aprovação? O estoque conta peças
+   produzidas ou aprovadas?
+4. **`capacidadeDiaria` e `producaoRealizadaDiaria` não são diárias** — são do
+   período, porque o tempo disponível já embute os dias. Renomear para
+   `...Periodo`?

@@ -8,11 +8,12 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 **construtor visual de sequência de atividades**: o usuário monta a sequência
 na tela e é essa sequência que dirige o cálculo.
 
-> **Estado atual: Fase 1 concluída na parte de modelo de dados.** O modelo de
-> dados está definido em [`src/types/`](src/types/) e documentado em
-> [`docs/modelo-de-dados.md`](docs/modelo-de-dados.md). A página inicial segue
-> um placeholder institucional, e os arquivos de identidade (logos, capa) ainda
-> não chegaram. Nenhum cálculo implementado — o motor é a Fase 2.
+> **Estado atual: Fase 2 concluída, Parada P1 pendente.** O motor de cálculo
+> está em [`src/engine/`](src/engine/), com 41 testes passando contra as
+> fórmulas. A **Parada P1** (comparar o caso do robô com a planilha) não rodou:
+> os números do robô não estão no repositório — ver
+> [`docs/fases/fase-2.md`](docs/fases/fase-2.md). A página inicial segue um
+> placeholder; nenhuma tela do simulador foi construída.
 
 ## Fonte de verdade
 
@@ -24,6 +25,9 @@ explicitamente.
 O modelo de dados que atravessa o sistema está em
 **[`docs/modelo-de-dados.md`](docs/modelo-de-dados.md)** — campos, unidades,
 decisões e o mapeamento contra as abas da planilha original.
+
+As fórmulas do motor, e as nove divergências encontradas entre elas e o modelo
+de dados, estão em **[`docs/fases/fase-2.md`](docs/fases/fase-2.md)**.
 
 ## Como rodar
 
@@ -40,6 +44,7 @@ Outros comandos:
 | --- | --- |
 | `npm run dev` | Servidor de desenvolvimento, com recarga automática |
 | `npm run build` | Verifica os tipos (`tsc -b`) e gera o site em `dist/` |
+| `npm test` | Roda os testes do motor de cálculo (Vitest) |
 | `npm run preview` | Serve localmente o conteúdo de `dist/`, para conferir o build |
 | `npm run lint` | Roda o oxlint sobre o código |
 
@@ -52,6 +57,7 @@ Outros comandos:
 | Estilo | Tailwind CSS 4, fonte Outfit |
 | Construtor de sequência | React Flow 12 (`@xyflow/react`) — *instalado, em uso a partir da Fase 4* |
 | Gráficos | Recharts 3 — *instalado, em uso nas fases de resultado* |
+| Testes | Vitest 5 |
 | Hospedagem | Vercel |
 
 O porquê de cada escolha está em
@@ -69,6 +75,7 @@ simulador-producao/
 ├── public/                      # arquivos servidos com URL fixa (favicon)
 └── src/
     ├── engine/                  # motor de cálculo: TS puro, sem React
+    │   └── __tests__/           # testes do motor, incluindo a Parada P1
     ├── types/                   # modelo de dados: um arquivo por entidade
     ├── components/              # componentes de UI reutilizáveis
     ├── pages/                   # telas
@@ -90,6 +97,13 @@ Duas regras de estrutura que valem para todo o projeto:
    `enum` (o projeto usa `erasableSyntaxOnly`): uniões de literais no lugar.
    Cada campo leva JSDoc com a unidade. Importe pelo barril — `@/types` —, não
    pelos arquivos internos.
+4. **Grandeza relativa é fração de 0 a 1**, nunca porcentagem — ocupação,
+   eficiência, ocupação média. Converter para `%` é trabalho da tela. As
+   exceções são os campos de *entrada* (`fatorRitmo`, `fatorTolerancia`,
+   inspeção), que ficam como a pessoa digita.
+5. **O motor não valida a entrada.** Ele calcula o que der; avisar o usuário é
+   trabalho da interface. Ver
+   [`docs/decisoes/0003-premissas-do-motor-de-calculo.md`](docs/decisoes/0003-premissas-do-motor-de-calculo.md).
 
 ## Como contribuir
 
@@ -116,7 +130,8 @@ Duas regras de estrutura que valem para todo o projeto:
    as fases são commitadas direto na `main`. Use um branch quando a mudança
    precisar ser revisada antes de entrar no ar — a Vercel gera uma URL de
    pré-visualização por branch.
-3. Antes de commitar: `npm run lint` e `npm run build` precisam passar.
+3. Antes de commitar: `npm run lint`, `npm run build` e `npm test` precisam
+   passar.
 4. Commits em português, no imperativo e descrevendo o efeito
    (ex.: `adiciona modelo de dados das atividades`).
 5. Uma fase não começa antes de a anterior ser aprovada.

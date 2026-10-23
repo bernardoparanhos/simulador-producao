@@ -17,9 +17,11 @@ import type { AtividadeId } from './atividade'
  * - `'atencao'` — ocupação alta, perto do limite.
  * - `'acima'` — ocupação acima do limite aceitável.
  *
- * TODO(Fase 2): definir as faixas exatas de corte entre `'ok'`, `'atencao'` e
- * `'acima'` a partir da planilha do robô. Enquanto não estiverem definidas,
- * nenhum código deve assumir valores de corte.
+ * As faixas de corte são aplicadas pelo motor, em
+ * `src/engine/atividade.ts`: abaixo de 0,85 é `'ok'`, abaixo de 1,00 é
+ * `'atencao'`, de 1,00 para cima é `'acima'`.
+ *
+ * TODO(Fase 5): confirmar as faixas contra a planilha. São provisórias.
  */
 export type StatusOcupacao = 'ok' | 'atencao' | 'acima'
 
@@ -65,9 +67,8 @@ export interface ResultadoPorAtividade {
   /**
    * Ocupação da atividade, como **fração de 0 a 1**.
    *
-   * `0,85` = 85% ocupada. Atenção à unidade: aqui é fração, enquanto
-   * `ResultadoGlobal.ocupacaoMedia` está em porcentagem. A formatação para
-   * exibição é responsabilidade da tela.
+   * `0,85` = 85% ocupada. Todo o modelo usa fração; converter para porcentagem
+   * é responsabilidade da camada de tela, nunca do motor.
    */
   ocupacao: number
 
@@ -118,10 +119,9 @@ export interface ResultadoGlobal {
   tempoDisponivelMin: number
 
   /**
-   * Eficiência total da linha, em porcentagem (%).
+   * Eficiência total da linha, como **fração de 0 a 1**.
    *
-   * Ex.: `87.5`. Atenção à unidade: aqui é porcentagem, enquanto
-   * {@link ResultadoPorAtividade.ocupacao} está em fração de 0 a 1.
+   * Média das ocupações das atividades. `0,875` = 87,5%.
    */
   eficienciaTotal: number
 
@@ -129,18 +129,18 @@ export interface ResultadoGlobal {
    * Lead time: tempo total para uma unidade atravessar o fluxo inteiro, da
    * primeira à última atividade, em minutos (min).
    */
-  leadTime: number
+  leadTimeMin: number
 
   /**
-   * Work in process: material em processamento dentro do fluxo, em unidades
+   * Work in process: material em processamento dentro do fluxo, em peças
    * (unid.).
    */
-  wip: number
+  wipPecas: number
 
   /**
-   * Ocupação média das atividades, em porcentagem (%).
+   * Ocupação média das atividades, como **fração de 0 a 1**.
    *
-   * Ex.: `72.4`.
+   * `0,724` = 72,4%.
    */
   ocupacaoMedia: number
 

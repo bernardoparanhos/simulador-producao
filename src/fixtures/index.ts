@@ -2,9 +2,23 @@
  * Cenários de exemplo prontos (dados de entrada completos) usados para
  * demonstração, testes manuais e testes automatizados do motor de cálculo.
  *
- * O primeiro cenário será o do robô, nas próximas fases.
- *
- * Vazio na Fase 0 — ver docs/plano-de-construcao.md.
+ * | Cenário | O que é |
+ * | --- | --- |
+ * | `exemplo` | Sintético e fictício. Quatro atividades com afunilamento, para exercitar o motor. |
+ * | `robo` | O caso real da planilha, referência da Parada P1. **Ainda sem os números** — ver `robo.ts`. |
  */
 
-export {}
+export {
+  atividadesExemplo,
+  cenarioExemplo,
+  exemplo,
+  sequenciaExemplo,
+} from './exemplo'
+export {
+  atividadesRobo,
+  cenarioRobo,
+  PENDENTE,
+  robo,
+  roboEstaPendente,
+  sequenciaRobo,
+} from './robo'
