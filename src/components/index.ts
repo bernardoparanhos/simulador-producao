@@ -6,7 +6,9 @@
  * '@/components' em vez de caminhos profundos.
  */
 
-export { CampoNumero, CampoSelecao, TituloSecao } from './Campo'
+export { AtividadeDrawer } from './AtividadeDrawer'
+export { BarraOcupacao } from './BarraOcupacao'
+export { CampoNumero, CampoSelecao, CampoTexto, TituloSecao } from './Campo'
 export { FormasDados, FormasPresenca } from './Formas'
 export { HeaderSimulador } from './HeaderSimulador'
 export { MarcaInstitucional } from './MarcaInstitucional'

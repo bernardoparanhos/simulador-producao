@@ -17,14 +17,25 @@ onde estamos.
 | 2 — Motor de cálculo | concluída | [fase-2.md](fases/fase-2.md) |
 | **P1 — Parada de teste** | **aprovada**: 49/49 testes, as 15 atividades do robô batendo com a planilha | [fase-2.md](fases/fase-2.md) |
 | 3 — Entradas | telas de abertura, entrada e **Cenário**, com a identidade DP-1 aplicada | [fase-3.md](fases/fase-3.md) |
-| 4 — Construtor de sequência | não iniciada | — |
-| **P2 — Parada de teste** | adiada para o fim da Fase 4 | — |
-| 5 a 8 | não iniciadas | — |
+| 4 — Atividades | lista, drawer de cadastro/edição e prévia ao vivo (DP-2) | [fase-4.md](fases/fase-4.md) |
+| **P2 — Parada de teste** | **aprovada** — robô inserido pela interface, motor devolve os mesmos valores da P1 (`tempoDisponivelMin` = 5600, gargalo `'112'`) | [fase-4.md](fases/fase-4.md) |
+| 5 — Construtor de sequência | não iniciada | — |
+| 6 a 8 | não iniciadas | — |
 
-**Atividades e a Parada P2 passaram para a Fase 4.** O plano previa as duas
-telas de entrada na Fase 3, mas os frames aprovados (DP-1) cobrem Cenário e não
-Atividades. A P2 depende de Atividades: sem elas o motor não devolve número
-nenhum para comparar.
+**As fases deslizaram um número.** O plano previa Cenário e Atividades juntas na
+Fase 3, com a P2 no fim. Os frames vieram em duas entregas (DP-1 e DP-2), então
+Atividades e a P2 ficaram na Fase 4, e o construtor de sequência — que o plano
+chamava de Fase 4 — passa a ser a Fase 5. A ordem do caminho dos dados não
+mudou.
+
+## O que a Parada P2 encontrou
+
+A interface **não reproduz o cenário da planilha por inteiro**: a tela de
+Cenário não tem o campo de tempo de descanso, porque a P1 provou que a planilha
+não o desconta (D-10). Hoje é inofensivo — os dois cenários dão o mesmo tempo
+disponível, e há um teste que prova isso. Mas esse teste falha de propósito no
+dia em que D-10 for resolvida a favor de descontar o descanso, e aí a tela
+precisa ganhar o campo de volta.
 
 ## O que a Parada P1 corrigiu
 
@@ -66,7 +77,10 @@ porque o fluxograma da planilha estava vazio).
 | D-13, D-4 | A inspeção está toda inerte: três parâmetros preenchidos, nenhum afeta número | [fase-2.md](fases/fase-2.md) |
 | D-14 | Unidade dos campos de inspeção: `%` inteiro ou fração? | [fase-2.md](fases/fase-2.md) |
 | D-7 | Falta renomear `producaoRealizadaDiaria`, que ficou com o sufixo antigo | [fase-2.md](fases/fase-2.md) |
+| D-18 | Duas classificações de ocupação com cortes diferentes: 0,75 na tela (DP-2) e 0,85 no motor (Fase 2) | [fase-4.md](fases/fase-4.md) |
+| DP-1 × DP-2 | O guia do DP-2 repete cores, bordas e altura de header diferentes das aprovadas no DP-1. Mantidos os do DP-1 | [fase-4.md](fases/fase-4.md) |
 
 Resolvidas depois da Fase 3: **D-16** (a conversão de segundos para minutos
 ficou na fronteira `cenarioDoFormulario`) e **D-17** (o rótulo da demanda
-acompanha a periodicidade escolhida).
+acompanha a periodicidade escolhida). **D-19** é um arredondamento do mock de
+design, não uma decisão pendente — ver [fase-4.md](fases/fase-4.md).

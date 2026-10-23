@@ -18,6 +18,17 @@ const CONTROLE =
   'w-full border border-line bg-white px-3 py-2.5 text-sm text-dark ' +
   'outline-none transition-colors focus:border-yellow'
 
+/**
+ * Variante do campo principal de um formulário.
+ *
+ * Borda mais grossa e escura, texto maior: no drawer de atividade é o tempo
+ * cronometrado, que é de onde sai todo o resto do cálculo. Um campo por
+ * formulário, no máximo — se dois são principais, nenhum é.
+ */
+const CONTROLE_DESTACADO =
+  'w-full border-[1.5px] border-dark bg-white px-3 py-3 text-base text-dark ' +
+  'outline-none transition-colors focus:border-yellow'
+
 export interface CampoNumeroProps {
   /** Rótulo acima do campo, com a unidade entre parênteses. */
   rotulo: string
@@ -35,6 +46,8 @@ export interface CampoNumeroProps {
   ajuda?: string
   /** Sufixo exibido dentro do campo, à direita (ex.: `%`). */
   sufixo?: string
+  /** Marca este como o campo principal do formulário. Ver {@link CONTROLE_DESTACADO}. */
+  destacado?: boolean
 }
 
 /**
@@ -54,6 +67,7 @@ export function CampoNumero({
   passo = 1,
   ajuda,
   sufixo,
+  destacado = false,
 }: CampoNumeroProps) {
   const id = useId()
 
@@ -79,7 +93,9 @@ export function CampoNumero({
             if (maximo !== undefined && lido > maximo) return aoAlterar(maximo)
             aoAlterar(lido)
           }}
-          className={`${CONTROLE} ${sufixo === undefined ? '' : 'pr-9'}`}
+          className={`${destacado ? CONTROLE_DESTACADO : CONTROLE} ${
+            sufixo === undefined ? '' : 'pr-9'
+          }`}
         />
 
         {sufixo !== undefined && (
@@ -146,6 +162,38 @@ export function CampoSelecao<V extends string>({
           <path d="M0 0h10L5 6z" />
         </svg>
       </div>
+    </div>
+  )
+}
+
+export interface CampoTextoProps {
+  /** Rótulo acima do campo. */
+  rotulo: string
+  /** Valor atual. */
+  valor: string
+  /** Chamado a cada tecla. */
+  aoAlterar: (valor: string) => void
+  /** Texto de exemplo dentro do campo vazio. */
+  placeholder?: string
+}
+
+/** Campo de texto livre, com a mesma moldura do {@link CampoNumero}. */
+export function CampoTexto({ rotulo, valor, aoAlterar, placeholder }: CampoTextoProps) {
+  const id = useId()
+
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-xs text-muted">
+        {rotulo}
+      </label>
+      <input
+        id={id}
+        type="text"
+        value={valor}
+        placeholder={placeholder}
+        onChange={(evento) => aoAlterar(evento.target.value)}
+        className={`${CONTROLE} placeholder:text-muted/60`}
+      />
     </div>
   )
 }

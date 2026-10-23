@@ -48,3 +48,19 @@
     display: none;
   }
 }
+
+/*
+ * Entrada do drawer de atividade: desliza da direita.
+ *
+ * Fora de `@layer base` porque `@keyframes` não pertence a camada nenhuma.
+ * O componente aplica a animação sob `motion-safe`, então quem pediu menos
+ * movimento no sistema operacional recebe o painel já posicionado.
+ */
+@keyframes deslizar {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

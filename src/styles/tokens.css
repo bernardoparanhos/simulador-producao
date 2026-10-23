@@ -44,6 +44,34 @@
 
   /* Borda dos inputs e separadores. */
   --color-line: #e0e0e0;
+
+  /*
+   * Status de ocupação (DP-2).
+   *
+   * As três únicas cores do projeto que carregam significado em vez de
+   * identidade: dizem se uma atividade está folgada, apertada ou estourada.
+   * Por isso vermelho e verde não aparecem em mais lugar nenhum — se
+   * aparecessem, a cor deixaria de ser sinal.
+   */
+  --color-status-ok: #4f9d6b;
+  --color-status-atencao: #f7a400;
+  --color-status-acima: #d13b2e;
+
+  /*
+   * O laranja de atenção escurecido, para texto.
+   *
+   * `status-atencao` tem contraste insuficiente sobre fundo claro em corpo de
+   * texto. A barra usa a cor viva; o número ao lado usa esta.
+   */
+  --color-status-text-atencao: #c67f00;
+
+  /* Fundo do card de prévia ao vivo no drawer. */
+  --color-preview-bg: #fffdf2;
+}
+
+/* Véu sobre a lista enquanto o drawer está aberto. */
+:root {
+  --color-scrim: rgba(28, 28, 28, 0.55);
 }
 
 /*

@@ -8,12 +8,12 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 **construtor visual de sequência de atividades**: o usuário monta a sequência
 na tela e é essa sequência que dirige o cálculo.
 
-> **Estado atual: Fase 3 — primeiras telas no ar.** O motor de cálculo está em
-> [`src/engine/`](src/engine/), com **49 testes passando** e a Parada P1
-> aprovada contra a planilha do robô. A interface tem três telas com a
-> identidade institucional aplicada: abertura, apresentação e o passo 1
-> (Cenário). As telas de Atividades, Sequência e Resultados vêm nas fases
-> seguintes.
+> **Estado atual: Fase 4 — dois dos quatro passos prontos.** O motor de cálculo
+> está em [`src/engine/`](src/engine/), com **58 testes passando** e as Paradas
+> **P1 e P2 aprovadas** contra a planilha do robô. A interface tem a abertura, a
+> apresentação, o passo 1 (Cenário) e o passo 2 (Atividades, com cadastro em
+> drawer e prévia ao vivo). O construtor de sequência e os resultados vêm nas
+> fases seguintes.
 
 ## Fonte de verdade
 
@@ -84,7 +84,10 @@ simulador-producao/
     ├── engine/                  # motor de cálculo: TS puro, sem React
     │   └── __tests__/           # testes do motor, incluindo a Parada P1
     ├── types/                   # modelo de dados: um arquivo por entidade
-    ├── state/                   # estado compartilhado entre telas (cenário)
+    ├── state/                   # estado compartilhado (cenário, atividades)
+    ├── hooks/                   # ganchos de React (prévia ao vivo)
+    ├── utils/                   # formatação e faixas de status
+    ├── integration/__tests__/   # testes de ponta a ponta das paradas (P2)
     ├── styles/   tokens.css     # as cores da identidade — única fonte de cor
     ├── components/              # componentes de UI reutilizáveis
     ├── pages/                   # telas, uma por passo
