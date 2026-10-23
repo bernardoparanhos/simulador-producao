@@ -6,26 +6,21 @@
  * de "passos claros" — em qualquer tela a pessoa vê onde está e o que vem
  * depois.
  *
- * Os passos cujas telas já existem navegam; os que ainda não existem ficam
- * inertes, com a mesma aparência. Um passo clicável que não leva a lugar
- * nenhum é pior do que um passo que não convida ao clique.
+ * Desde a Fase 5 os quatro passos navegam. Enquanto só parte das telas
+ * existia, os passos sem tela ficavam inertes — um passo clicável que não leva
+ * a lugar nenhum é pior do que um que não convida ao clique.
  */
 
 import { NavLink } from 'react-router-dom'
 
 import { MarcaInstitucional } from './MarcaInstitucional'
 
-/**
- * Os quatro passos, na ordem do caminho dos dados.
- *
- * `rota` é `null` enquanto a tela não existe. Quando a Fase 6 trouxer os
- * resultados, basta preencher a rota aqui.
- */
+/** Os quatro passos, na ordem do caminho dos dados. */
 const PASSOS = [
   { numero: 1, nome: 'Cenário', rota: '/cenario' },
   { numero: 2, nome: 'Atividades', rota: '/atividades' },
   { numero: 3, nome: 'Sequência', rota: '/sequencia' },
-  { numero: 4, nome: 'Resultados', rota: null },
+  { numero: 4, nome: 'Resultados', rota: '/resultados' },
 ] as const
 
 export interface HeaderSimuladorProps {
@@ -33,7 +28,7 @@ export interface HeaderSimuladorProps {
   passoAtivo: (typeof PASSOS)[number]['numero']
 }
 
-/** Aparência de um passo, igual para o que navega e o que não navega. */
+/** Aparência de um passo. */
 function classesDoPasso(ativo: boolean): string {
   return ativo
     ? 'block bg-yellow px-4 py-2 text-xs font-bold text-dark'
@@ -62,23 +57,13 @@ export function HeaderSimulador({ passoAtivo }: HeaderSimuladorProps) {
 
               return (
                 <li key={passo.numero}>
-                  {passo.rota === null ? (
-                    <span
-                      className={classesDoPasso(ativo)}
-                      aria-disabled="true"
-                      title="Disponível a partir da Fase 6"
-                    >
-                      {rotulo}
-                    </span>
-                  ) : (
-                    <NavLink
-                      to={passo.rota}
-                      aria-current={ativo ? 'step' : undefined}
-                      className={`${classesDoPasso(ativo)} ${ativo ? '' : 'hover:text-white'}`}
-                    >
-                      {rotulo}
-                    </NavLink>
-                  )}
+                  <NavLink
+                    to={passo.rota}
+                    aria-current={ativo ? 'step' : undefined}
+                    className={`${classesDoPasso(ativo)} ${ativo ? '' : 'hover:text-white'}`}
+                  >
+                    {rotulo}
+                  </NavLink>
                 </li>
               )
             })}

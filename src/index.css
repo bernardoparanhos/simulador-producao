@@ -64,3 +64,53 @@
     transform: translateX(0);
   }
 }
+
+/*
+ * React Flow — ajustes de identidade.
+ *
+ * A folha da biblioteca é importada pela tela de sequência e vem depois da
+ * nossa na cascata, então estes ajustes ficam fora de `@layer base` para
+ * vencê-la. São só os dois pontos em que o padrão dela contraria a identidade:
+ * raio nos botões e cor dos controles.
+ */
+.react-flow__controls {
+  box-shadow: none;
+}
+
+.react-flow__controls button {
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: #ffffff;
+  color: var(--color-dark);
+}
+
+.react-flow__controls button:hover {
+  background: var(--color-light-bg);
+}
+
+/* A alça de conexão em foco acompanha o amarelo da identidade. */
+.react-flow__handle:hover {
+  background: var(--color-yellow);
+}
+
+/* A linha que acompanha o cursor enquanto se arrasta uma ligação. */
+.react-flow__connectionline path {
+  stroke: var(--color-yellow);
+  stroke-width: 2.5;
+}
+
+/*
+ * O crédito do React Flow, legível sobre o canvas escuro.
+ *
+ * A biblioteca é MIT e o crédito pode ser removido, mas ele fica: custa um
+ * canto de 11px e a biblioteca sustenta o coração deste projeto. O padrão dela
+ * é escuro sobre claro, que no MODO CANVAS vira um borrão.
+ */
+.react-flow__attribution {
+  background: transparent;
+}
+
+.react-flow__attribution a {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+}

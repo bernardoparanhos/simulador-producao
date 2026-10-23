@@ -67,6 +67,28 @@
 
   /* Fundo do card de prévia ao vivo no drawer. */
   --color-preview-bg: #fffdf2;
+
+  /*
+   * MODO CANVAS (DP-3) — o terceiro modo da identidade.
+   *
+   * O construtor de sequência não é nem presença nem dados: é uma mesa de
+   * trabalho. Fundo escuro, mais escuro que o `dark` do header, para que os
+   * nós brancos saltem e o olho siga o fluxo em vez da moldura.
+   */
+  --color-canvas-bg: #242424;
+  --color-node-gargalo-bg: #fff5f5;
+  --color-panel-border: #d9d4ca;
+}
+
+/*
+ * Valores com alfa e apelidos semânticos. Ficam fora do `@theme` porque não
+ * precisam virar utilidade do Tailwind — são lidos por `var()` no componente
+ * de canvas, que entrega cor crua ao React Flow.
+ */
+:root {
+  --color-canvas-grid: rgba(255, 255, 255, 0.07);
+  --color-edge: var(--color-yellow);
+  --color-node-selected-outline: var(--color-yellow);
 }
 
 /* Véu sobre a lista enquanto o drawer está aberto. */

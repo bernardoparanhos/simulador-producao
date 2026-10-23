@@ -19,9 +19,15 @@ onde estamos.
 | 3 — Entradas | telas de abertura, entrada e **Cenário**, com a identidade DP-1 aplicada | [fase-3.md](fases/fase-3.md) |
 | 4 — Atividades | lista, drawer de cadastro/edição e prévia ao vivo (DP-2) | [fase-4.md](fases/fase-4.md) |
 | **P2 — Parada de teste** | **aprovada** — robô inserido pela interface, motor devolve os mesmos valores da P1 (`tempoDisponivelMin` = 5600, gargalo `'112'`) | [fase-4.md](fases/fase-4.md) |
-| 5 — Construtor de sequência | **preparada**: dependência, modelo de estado e Parada P3 prontos; o canvas aguarda os frames do DP-3 | [0002](decisoes/0002-representacao-da-sequencia.md) |
-| **P3 — Parada de teste** | **aprovada** — 15 atividades do robô carregadas no canvas, gargalo `'112'` representado; `addEdge` e `removeEdgesForNode` validados | — |
-| 6 a 8 | não iniciadas | — |
+| 5 — Construtor de sequência | **concluída** — canvas, nós, ligações e painel lateral (DP-3) | [fase-5.md](fases/fase-5.md) |
+| **P3 — Parada de teste** | **aprovada** — 15 atividades do robô carregadas no canvas, gargalo `'112'` representado; `addEdge` e `removeEdgesForNode` validados | [fase-5.md](fases/fase-5.md) |
+| 6 — Resultados | não iniciada (rota com placeholder) | — |
+| 7 e 8 | não iniciadas | — |
+
+**O coração do sistema está no ar.** Ligar duas atividades no canvas muda o
+número: quem está a jusante passa a ser limitado por quem o alimenta. Era a
+única melhoria que o professor pediu, e o que a planilha não fazia — lá o
+fluxograma é um desenho que não alimenta o cálculo.
 
 **As fases deslizaram um número.** O plano previa Cenário e Atividades juntas na
 Fase 3, com a P2 no fim. Os frames vieram em duas entregas (DP-1 e DP-2), então
@@ -94,6 +100,7 @@ porque o fluxograma da planilha estava vazio).
 | D-14 | Unidade dos campos de inspeção: `%` inteiro ou fração? | [fase-2.md](fases/fase-2.md) |
 | D-7 | Falta renomear `producaoRealizadaDiaria`, que ficou com o sufixo antigo | [fase-2.md](fases/fase-2.md) |
 | Corte de ocupação | O corte `ok`/`atencao` de 0,75 veio do DP-2 e nunca foi conferido contra a planilha | [fase-4.md](fases/fase-4.md) |
+| Frames DP-3 | A tela de sequência foi construída pela especificação textual; os frames não chegaram ao desenvolvimento e as capturas precisam ser conferidas | [fase-5.md](fases/fase-5.md) |
 | DP-1 × DP-2 | O guia do DP-2 repete cores, bordas e altura de header diferentes das aprovadas no DP-1. Mantidos os do DP-1 | [fase-4.md](fases/fase-4.md) |
 
 Resolvidas depois da Fase 3: **D-16** (a conversão de segundos para minutos

@@ -12,7 +12,8 @@ import {
   AtividadesPage,
   CenarioPage,
   EntradaPage,
-  SequenciaPage,
+  ResultadosPage,
+  SequencePage,
   SplashScreen,
 } from '@/pages'
 import { ProvedorAtividades, ProvedorCenario, ProvedorSequencia } from '@/state'
@@ -29,7 +30,8 @@ export default function App() {
               <Route path="/entrada" element={<EntradaPage />} />
               <Route path="/cenario" element={<CenarioPage />} />
               <Route path="/atividades" element={<AtividadesPage />} />
-              <Route path="/sequencia" element={<SequenciaPage />} />
+              <Route path="/sequencia" element={<SequencePage />} />
+              <Route path="/resultados" element={<ResultadosPage />} />
               {/* Qualquer outro caminho volta para a abertura. */}
               <Route path="*" element={<Navigate to="/splash" replace />} />
             </Routes>

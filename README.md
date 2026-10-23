@@ -8,12 +8,12 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 **construtor visual de sequência de atividades**: o usuário monta a sequência
 na tela e é essa sequência que dirige o cálculo.
 
-> **Estado atual: Fase 4 — dois dos quatro passos prontos.** O motor de cálculo
-> está em [`src/engine/`](src/engine/), com **75 testes passando** e as Paradas
-> **P1, P2 e P3 aprovadas** contra a planilha do robô. A interface tem a
-> abertura, a apresentação, o passo 1 (Cenário) e o passo 2 (Atividades, com
-> cadastro em drawer e prévia ao vivo). O construtor de sequência está
-> preparado — estado e testes prontos, canvas aguardando o desenho.
+> **Estado atual: Fase 5 — o coração do sistema está no ar.** O motor de
+> cálculo está em [`src/engine/`](src/engine/), com **75 testes passando** e as
+> Paradas **P1, P2 e P3 aprovadas** contra a planilha do robô. A interface tem
+> os três primeiros passos: Cenário, Atividades e o **construtor de sequência**
+> — ligar duas atividades no canvas muda o resultado, que é a melhoria central
+> do projeto. A tela de Resultados vem na Fase 6.
 
 ## Fonte de verdade
 
