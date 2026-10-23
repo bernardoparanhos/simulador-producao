@@ -8,11 +8,12 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 **construtor visual de sequência de atividades**: o usuário monta a sequência
 na tela e é essa sequência que dirige o cálculo.
 
-> **Estado atual: Fase 2 concluída, Parada P1 aprovada.** O motor de cálculo
-> está em [`src/engine/`](src/engine/), com **49 testes passando** — as 15
-> atividades do caso real do robô batem com a planilha em tempo padrão, tempo de
-> ciclo, capacidade e ocupação. A página inicial segue um placeholder; nenhuma
-> tela do simulador foi construída.
+> **Estado atual: Fase 3 — primeiras telas no ar.** O motor de cálculo está em
+> [`src/engine/`](src/engine/), com **49 testes passando** e a Parada P1
+> aprovada contra a planilha do robô. A interface tem três telas com a
+> identidade institucional aplicada: abertura, apresentação e o passo 1
+> (Cenário). As telas de Atividades, Sequência e Resultados vêm nas fases
+> seguintes.
 
 ## Fonte de verdade
 
@@ -20,6 +21,11 @@ O escopo do projeto está em **[`docs/plano-de-construcao.md`](docs/plano-de-con
 — o mapa das 9 fases, o caminho dos dados e as paradas de teste. Em caso de
 divergência entre o código e o plano, o plano está certo até ser alterado
 explicitamente.
+
+Esse arquivo é um **espelho** do documento vivo mantido no claude.ai, então
+nada de andamento deve ser escrito nele: toda re-sincronização sobrescreve. O
+estado da construção — onde estamos, o que está aberto — fica em
+**[`docs/estado.md`](docs/estado.md)**.
 
 O modelo de dados que atravessa o sistema está em
 **[`docs/modelo-de-dados.md`](docs/modelo-de-dados.md)** — campos, unidades,
@@ -54,6 +60,7 @@ Outros comandos:
 | --- | --- |
 | Build / dev server | Vite 8 |
 | Interface | React 19 + TypeScript 6 (`strict`) |
+| Rotas | React Router 7 |
 | Estilo | Tailwind CSS 4, fonte Outfit |
 | Construtor de sequência | React Flow 12 (`@xyflow/react`) — *instalado, em uso a partir da Fase 4* |
 | Gráficos | Recharts 3 — *instalado, em uso nas fases de resultado* |
@@ -77,8 +84,10 @@ simulador-producao/
     ├── engine/                  # motor de cálculo: TS puro, sem React
     │   └── __tests__/           # testes do motor, incluindo a Parada P1
     ├── types/                   # modelo de dados: um arquivo por entidade
+    ├── state/                   # estado compartilhado entre telas (cenário)
+    ├── styles/   tokens.css     # as cores da identidade — única fonte de cor
     ├── components/              # componentes de UI reutilizáveis
-    ├── pages/                   # telas
+    ├── pages/                   # telas, uma por passo
     ├── fixtures/                # cenários de exemplo prontos
     ├── assets/                  # identidade institucional (logos/, capas/)
     ├── App.tsx                  # raiz da aplicação
@@ -105,6 +114,11 @@ Duas regras de estrutura que valem para todo o projeto:
 5. **O motor não valida a entrada.** Ele calcula o que der; avisar o usuário é
    trabalho da interface. Ver
    [`docs/decisoes/0003-premissas-do-motor-de-calculo.md`](docs/decisoes/0003-premissas-do-motor-de-calculo.md).
+6. **Nenhum componente declara cor própria.** Toda cor sai de
+   [`src/styles/tokens.css`](src/styles/tokens.css); se não está lá, não existe
+   na identidade. Botões e campos têm raio zero, e **nada tem sombra** — o
+   relevo vem de borda e contraste. Ver
+   [`docs/decisoes/0004-camada-de-tela.md`](docs/decisoes/0004-camada-de-tela.md).
 
 ## Como contribuir
 

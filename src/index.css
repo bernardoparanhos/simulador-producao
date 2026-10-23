@@ -1,30 +1,50 @@
 @import 'tailwindcss';
+@import './styles/tokens.css';
 
 /*
- * Tokens de identidade do projeto.
- * Tailwind v4 lê este bloco e gera as utilidades correspondentes
- * (ex.: --color-grafite-700 vira bg-grafite-700, text-grafite-700...).
- * Mudar a identidade visual do simulador começa aqui.
+ * Estilo global.
+ *
+ * Os tokens de identidade estão em `src/styles/tokens.css`. Aqui ficam só as
+ * regras de documento: fundo, tipografia base e as duas decisões de forma que
+ * valem para o projeto inteiro.
  */
-@theme {
-  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
-
-  /* Neutros institucionais */
-  --color-grafite-50: oklch(0.985 0.002 250);
-  --color-grafite-100: oklch(0.96 0.003 250);
-  --color-grafite-200: oklch(0.91 0.004 250);
-  --color-grafite-400: oklch(0.66 0.012 250);
-  --color-grafite-600: oklch(0.45 0.018 250);
-  --color-grafite-800: oklch(0.28 0.02 250);
-  --color-grafite-900: oklch(0.2 0.02 250);
-
-  /* Acento: usado em ações, destaques e séries primárias de gráfico */
-  --color-acento-500: oklch(0.62 0.16 250);
-  --color-acento-600: oklch(0.54 0.16 250);
-}
 
 @layer base {
   body {
-    @apply bg-grafite-50 text-grafite-900 font-sans antialiased;
+    /* `light-bg` no documento evita o flash branco ao abrir uma tela MODO DADOS. */
+    @apply bg-light-bg text-dark font-sans antialiased;
+  }
+
+  /*
+   * Arestas retas em tudo que é interativo. É a regra de forma da identidade
+   * 1E: botões e campos não têm raio, e nada tem sombra — o relevo vem de
+   * borda e de contraste de cor, nunca de blur.
+   */
+  button,
+  input,
+  select,
+  textarea {
+    border-radius: 0;
+  }
+
+  /* Tira o cursor de incremento dos campos numéricos: o teclado basta. */
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Rolagem funciona, barra não aparece. */
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
   }
 }

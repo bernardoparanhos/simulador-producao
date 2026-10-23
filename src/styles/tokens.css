@@ -1,0 +1,58 @@
+/*
+ * Tokens de identidade — extraídos dos frames aprovados na entrega DP-1
+ * (estética 1E geométrico UTFPR).
+ *
+ * Esta é a única fonte de cor do projeto. Nenhum componente declara cor
+ * própria: se uma cor não está aqui, ela não existe na identidade.
+ *
+ * O bloco `@theme` é lido pelo Tailwind 4, que gera as utilidades
+ * correspondentes (`--color-yellow` vira `bg-yellow`, `text-yellow`,
+ * `border-yellow`...) e, ao mesmo tempo, publica as variáveis CSS para uso
+ * direto em `var(--color-yellow)`.
+ *
+ * ## Os dois modos
+ *
+ * A identidade tem dois modos, e cada tela pertence a um deles:
+ *
+ * - **MODO PRESENÇA** — fundo `dark`, formas geométricas amarelas, tipografia
+ *   grande. É a cara institucional: splash e página de entrada.
+ * - **MODO DADOS** — fundo `light-bg`, formas geométricas fumaçadas ao fundo,
+ *   tipografia funcional. É onde se trabalha: cenário, atividades, sequência e
+ *   resultados.
+ */
+
+@theme {
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  /* Grafite escuro — fundo do MODO PRESENÇA, header do MODO DADOS, texto. */
+  --color-dark: #1c1c1c;
+
+  /* Amarelo principal — botões, destaques, a palavra "Produção", step ativo. */
+  --color-yellow: #f5c400;
+
+  /* Amarelo rebaixado — formas geométricas de fundo no MODO DADOS. */
+  --color-yellow-deep: #d4a800;
+
+  /* Laranja — badges, barra do header, ícone de atenção, texto de apoio. */
+  --color-orange: #e87800;
+
+  /* Areia levíssima — fundo do MODO DADOS e do documento. */
+  --color-light-bg: #f5f4ef;
+
+  /* Cinza de apoio — labels, rodapé, steps inativos. */
+  --color-muted: #8a8a8a;
+
+  /* Borda dos inputs e separadores. */
+  --color-line: #e0e0e0;
+}
+
+/*
+ * Aliases com os nomes exatos da especificação DP-1, para quem for conferir
+ * token a token contra o documento de design. Apontam para os mesmos valores
+ * do bloco acima — não são cores novas.
+ */
+:root {
+  --color-text-dark: var(--color-dark);
+  --color-text-muted: var(--color-muted);
+  --color-border: var(--color-line);
+}
