@@ -15,24 +15,26 @@ import {
   SequenciaPage,
   SplashScreen,
 } from '@/pages'
-import { ProvedorAtividades, ProvedorCenario } from '@/state'
+import { ProvedorAtividades, ProvedorCenario, ProvedorSequencia } from '@/state'
 
 export default function App() {
   return (
     <ProvedorCenario>
       <ProvedorAtividades>
-        <Roteador>
-          <Routes>
-            <Route path="/" element={<Navigate to="/splash" replace />} />
-            <Route path="/splash" element={<SplashScreen />} />
-            <Route path="/entrada" element={<EntradaPage />} />
-            <Route path="/cenario" element={<CenarioPage />} />
-            <Route path="/atividades" element={<AtividadesPage />} />
-            <Route path="/sequencia" element={<SequenciaPage />} />
-            {/* Qualquer outro caminho volta para a abertura. */}
-            <Route path="*" element={<Navigate to="/splash" replace />} />
-          </Routes>
-        </Roteador>
+        <ProvedorSequencia>
+          <Roteador>
+            <Routes>
+              <Route path="/" element={<Navigate to="/splash" replace />} />
+              <Route path="/splash" element={<SplashScreen />} />
+              <Route path="/entrada" element={<EntradaPage />} />
+              <Route path="/cenario" element={<CenarioPage />} />
+              <Route path="/atividades" element={<AtividadesPage />} />
+              <Route path="/sequencia" element={<SequenciaPage />} />
+              {/* Qualquer outro caminho volta para a abertura. */}
+              <Route path="*" element={<Navigate to="/splash" replace />} />
+            </Routes>
+          </Roteador>
+        </ProvedorSequencia>
       </ProvedorAtividades>
     </ProvedorCenario>
   )

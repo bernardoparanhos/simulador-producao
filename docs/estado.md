@@ -19,7 +19,8 @@ onde estamos.
 | 3 — Entradas | telas de abertura, entrada e **Cenário**, com a identidade DP-1 aplicada | [fase-3.md](fases/fase-3.md) |
 | 4 — Atividades | lista, drawer de cadastro/edição e prévia ao vivo (DP-2) | [fase-4.md](fases/fase-4.md) |
 | **P2 — Parada de teste** | **aprovada** — robô inserido pela interface, motor devolve os mesmos valores da P1 (`tempoDisponivelMin` = 5600, gargalo `'112'`) | [fase-4.md](fases/fase-4.md) |
-| 5 — Construtor de sequência | não iniciada | — |
+| 5 — Construtor de sequência | **preparada**: dependência, modelo de estado e Parada P3 prontos; o canvas aguarda os frames do DP-3 | [0002](decisoes/0002-representacao-da-sequencia.md) |
+| **P3 — Parada de teste** | **aprovada** — 15 atividades do robô carregadas no canvas, gargalo `'112'` representado; `addEdge` e `removeEdgesForNode` validados | — |
 | 6 a 8 | não iniciadas | — |
 
 **As fases deslizaram um número.** O plano previa Cenário e Atividades juntas na
@@ -27,6 +28,21 @@ Fase 3, com a P2 no fim. Os frames vieram em duas entregas (DP-1 e DP-2), então
 Atividades e a P2 ficaram na Fase 4, e o construtor de sequência — que o plano
 chamava de Fase 4 — passa a ser a Fase 5. A ordem do caminho dos dados não
 mudou.
+
+## O que a Parada P3 cobre
+
+As atividades e as posições dos nós vivem em contextos separados, e nada no
+tipo impede que uma posição aponte para uma atividade apagada, nem que uma
+atividade nova fique sem nó — o gargalo poderia ser uma atividade que não está
+desenhada em lugar nenhum. A P3 fecha esse vão: carrega as 15 atividades do
+robô no canvas, confere que cada uma aparece exatamente uma vez, que o gargalo
+`'112'` tem nó, e que ligar `111 → 112` faz a produção propagar a jusante.
+
+Também trava a tradução do modelo para o React Flow, num teste de tipos que é o
+único ponto do projeto a encostar na API de `@xyflow/react`.
+
+Fica de fora arrastar o nó com o mouse e desenhar a ligação na tela: é
+comportamento da biblioteca, pede navegador de verdade e entra na Fase 5.
 
 ## O que a Parada P2 encontrou
 

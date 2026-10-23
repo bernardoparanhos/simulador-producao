@@ -104,6 +104,49 @@ de quem está montando o fluxo e ainda não ligou aquele nó a nada.
 | **Sequência implícita por etapa e linha** (toda atividade da etapa *n* alimenta toda atividade da etapa *n+1*) | É mais ou menos o que a planilha faz, e é justamente o que o professor pediu para resolver: não expressa afunilamento, que é o caso real. |
 | **Guardar direto no formato do React Flow** (`Node[]` e `Edge[]` do `@xyflow/react`) | Tentador, porque elimina o adaptador. Mas amarraria o motor de cálculo e os cenários salvos à API de uma biblioteca de interface, contra o princípio do plano de manter o motor independente da tela. A conversão é de dez linhas; a dependência seria para sempre. |
 
+## Reafirmada na preparação da Fase 5
+
+A especificação de preparação do construtor de fluxo propôs um modelo com
+outros nomes:
+
+```ts
+interface SequenciaNodePosition { id: string; x: number; y: number }
+interface SequenciaEdge { id: string; source: string; target: string }
+interface Sequencia { nodePositions: SequenciaNodePosition[]; edges: SequenciaEdge[] }
+```
+
+É **o mesmo grafo** desta decisão, com os nomes do React Flow: `nodePositions`
+são os `nos`, `edges` são as `conexoes`, `source`/`target` são
+`origem`/`destino`. A forma proposta achata a posição no nó, que aqui é um
+objeto opcional.
+
+O modelo original foi mantido, por três razões:
+
+1. **O motor consome `Sequencia` direto.** `propagarGargalo` percorre
+   `conexoes` lendo `origem` e `destino`; `simular` recebe a sequência inteira.
+   Renomear significaria reescrever o motor, os dois fixtures e os testes que
+   as Paradas P1 e P2 travam — um diff grande, com risco real, para uma troca
+   de nomes.
+2. **Adotar os nomes da biblioteca é exatamente a alternativa que esta decisão
+   descartou.** O argumento continua valendo: amarraria o motor e os cenários
+   salvos à API de uma biblioteca de interface. A conversão é de dez linhas; a
+   dependência seria para sempre.
+3. **O vocabulário do projeto é o do domínio, em português** — é o primeiro
+   princípio de `docs/modelo-de-dados.md`, e `source`/`target` o quebrariam no
+   meio do caminho dos dados.
+
+O que a proposta trouxe de novo e **foi adotado**:
+
+- a **convenção de id das ligações**, `e-<origem>-<destino>`, agora em
+  `idDaConexao`. Derivar o id das pontas faz a mesma ligação ter sempre o mesmo
+  id, o que torna a detecção de repetida uma comparação de `id`;
+- a forma achatada `{ id, x, y }` como **entrada e saída das ações de posição**
+  (`PosicaoDeNo`, em `src/state/sequencia.ts`), para o canvas não montar objeto
+  aninhado a cada arrasto. É forma de interface, não de armazenamento.
+
+A tradução para o React Flow está travada por um teste na Parada P3, que também
+é o único ponto do projeto que encosta nos tipos de `@xyflow/react`.
+
 ## Consequências
 
 - O motor da Fase 2 recebe um grafo e pode percorrê-lo: encontrar as atividades

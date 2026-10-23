@@ -9,11 +9,11 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 na tela e é essa sequência que dirige o cálculo.
 
 > **Estado atual: Fase 4 — dois dos quatro passos prontos.** O motor de cálculo
-> está em [`src/engine/`](src/engine/), com **59 testes passando** e as Paradas
-> **P1 e P2 aprovadas** contra a planilha do robô. A interface tem a abertura, a
-> apresentação, o passo 1 (Cenário) e o passo 2 (Atividades, com cadastro em
-> drawer e prévia ao vivo). O construtor de sequência e os resultados vêm nas
-> fases seguintes.
+> está em [`src/engine/`](src/engine/), com **75 testes passando** e as Paradas
+> **P1, P2 e P3 aprovadas** contra a planilha do robô. A interface tem a
+> abertura, a apresentação, o passo 1 (Cenário) e o passo 2 (Atividades, com
+> cadastro em drawer e prévia ao vivo). O construtor de sequência está
+> preparado — estado e testes prontos, canvas aguardando o desenho.
 
 ## Fonte de verdade
 
@@ -62,7 +62,7 @@ Outros comandos:
 | Interface | React 19 + TypeScript 6 (`strict`) |
 | Rotas | React Router 7 |
 | Estilo | Tailwind CSS 4, fonte Outfit |
-| Construtor de sequência | React Flow 12 (`@xyflow/react`) — *instalado, em uso a partir da Fase 4* |
+| Construtor de sequência | React Flow 12.12 (`@xyflow/react`) — *em uso a partir da Fase 5* |
 | Gráficos | Recharts 3 — *instalado, em uso nas fases de resultado* |
 | Testes | Vitest 5 |
 | Hospedagem | Vercel |

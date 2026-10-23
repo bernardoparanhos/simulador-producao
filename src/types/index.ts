@@ -27,6 +27,7 @@
 export type { Atividade, AtividadeId } from './atividade'
 export type { Cenario, Inspecao, ParadaNaoPlanejada, Periodicidade } from './cenario'
 export type { ConexaoId, ConexaoSequencia, NoSequencia, Posicao, Sequencia } from './sequencia'
+export { idDaConexao } from './sequencia'
 export type { EntradaSimulacao } from './simulacao'
 export type {
   ResultadoGlobal,

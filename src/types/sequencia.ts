@@ -142,3 +142,26 @@ export interface Sequencia {
    */
   conexoes: ConexaoSequencia[]
 }
+
+/**
+ * Monta o identificador de uma conexão a partir das pontas.
+ *
+ * Convenção: `e-<origem>-<destino>` — `e-111-112` liga a atividade `111` à
+ * `112`. Derivar o id das pontas, em vez de sortear um, dá duas garantias de
+ * graça:
+ *
+ * - **a mesma ligação tem sempre o mesmo id**, então detectar conexão repetida
+ *   é comparar `id`, sem varrer a lista procurando o par origem/destino;
+ * - **o id é legível** no JSON salvo e na depuração, o que um UUID não seria.
+ *
+ * O preço é que o id deixa de ser opaco: ele passa a carregar significado, e
+ * trocar a origem de uma conexão exige recriá-la em vez de editá-la. É o
+ * comportamento certo para um grafo — mudar a ponta é outra ligação.
+ *
+ * @param origem Atividade que entrega a produção.
+ * @param destino Atividade que recebe a produção.
+ * @returns O identificador da conexão.
+ */
+export function idDaConexao(origem: AtividadeId, destino: AtividadeId): ConexaoId {
+  return `e-${origem}-${destino}`
+}
