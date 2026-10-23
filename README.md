@@ -9,7 +9,7 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 na tela e é essa sequência que dirige o cálculo.
 
 > **Estado atual: Fase 4 — dois dos quatro passos prontos.** O motor de cálculo
-> está em [`src/engine/`](src/engine/), com **58 testes passando** e as Paradas
+> está em [`src/engine/`](src/engine/), com **59 testes passando** e as Paradas
 > **P1 e P2 aprovadas** contra a planilha do robô. A interface tem a abertura, a
 > apresentação, o passo 1 (Cenário) e o passo 2 (Atividades, com cadastro em
 > drawer e prévia ao vivo). O construtor de sequência e os resultados vêm nas

@@ -210,7 +210,7 @@ Nada aqui é preenchido pela pessoa.
 | `taktTimeMin` | min/lote | Ritmo exigido pela demanda; não é o denominador da ocupação |
 | `tempoProducaoLoteMin` | min | Tempo para um lote inteiro, com setup |
 | `ocupacao` | **fração, 1 = 100%** | `0,85` = 85%; passa de 1 na sobrecarga |
-| `statusOcupacao` | — | `ok` (< 0,85), `atencao` (< 1,00), `acima` (>= 1,00) |
+| `statusOcupacao` | — | `ok` (<= 0,75), `atencao` (< 1,00), `acima` (>= 1,00) |
 | `quantidadeCiclos` | — | Ciclos executados no período |
 | `producaoRealizadaDiaria` | unid./dia | O que de fato sai, limitado pelo gargalo |
 | `estoqueFinal` | unid. | Sobra na saída da atividade |
@@ -240,9 +240,9 @@ Decisões e pontos abertos neste bloco:
   cada linha da tabela de resultados precise consultar o resultado global para
   saber se deve se destacar.
 - **As faixas de `statusOcupacao` são provisórias.** O motor aplica `ok`
-  abaixo de 0,85, `atencao` abaixo de 1,00 e `acima` de 1,00 para cima, valores
-  definidos no briefing da Fase 2 e ainda não confirmados contra a planilha
-  (`TODO(Fase 5)`).
+  até 0,75 inclusive, `atencao` abaixo de 1,00 e `acima` de 1,00 para cima. O
+  corte de 0,75 vem do DP-2 e ainda não foi confirmado contra a planilha
+  (`TODO(Fase 5)`); até a Fase 4 o motor usava 0,85 (divergência D-18).
 - **`gargaloAtividadeId` é anulável:** sem atividades no fluxo não há gargalo a
   apontar.
 

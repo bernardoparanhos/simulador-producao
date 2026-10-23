@@ -18,12 +18,12 @@ import type { AtividadeId } from './atividade'
  * - `'acima'` — ocupação acima do limite aceitável.
  *
  * As faixas de corte são aplicadas pelo motor, em
- * `src/engine/atividade.ts`: abaixo de 0,85 é `'ok'`, abaixo de 1,00 é
+ * `src/engine/atividade.ts`: até 0,75 inclusive é `'ok'`, abaixo de 1,00 é
  * `'atencao'`, de 1,00 para cima é `'acima'`. As três aparecem no cenário do
  * robô.
  *
  * TODO(Fase 5): confirmar as faixas contra a planilha. O corte de 1,00 é
- * natural (ocupação acima de 100% é sobrecarga); o de 0,85 é convenção.
+ * natural (ocupação acima de 100% é sobrecarga); o de 0,75 vem do DP-2.
  */
 export type StatusOcupacao = 'ok' | 'atencao' | 'acima'
 

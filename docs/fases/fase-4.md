@@ -139,23 +139,30 @@ e aí a tela precisa ganhar o campo de volta.
 
 ## Divergências
 
-### D-18. Há duas classificações de ocupação, com cortes diferentes
+### D-18. Duas classificações de ocupação com cortes diferentes — **RESOLVIDA**
+
+Ao entregar a fase havia **duas** implementações:
 
 | Onde | `ok` → `atencao` | `atencao` → `acima` |
 | --- | --- | --- |
-| `getStatusOcupacao` (tela, DP-2) | **0,75** | 1,00 |
-| `classificarOcupacao` (motor, Fase 2) | **0,85** | 1,00 |
+| `getStatusOcupacao` (tela, DP-2) | 0,75 | 1,00 |
+| `classificarOcupacao` (motor, Fase 2) | 0,85 | 1,00 |
 
-O campo `statusOcupacao` que o motor devolve usa 0,85; a tela usa 0,75. Para as
-cinco atividades de referência do DP-2 as duas concordam, mas uma atividade a
-80% de ocupação sai `'ok'` pelo motor e `'atencao'` na tela.
+As duas concordavam nas cinco atividades de referência, então nada parecia
+errado — uma atividade a 80% de ocupação é que sairia verde num lugar e laranja
+no outro.
 
-A tela usa a função do DP-2 e **nunca** lê o campo do motor, para que o que se
-vê seja o que o design especificou. Mas são duas verdades sobre a mesma coisa.
+Resolvida a favor de **0,75**, o valor do DP-2. O corte do motor foi alinhado e
+`getStatusOcupacao` passou a **delegar** para `classificarOcupacao`: agora há uma
+implementação só, e o que sobrou em `src/utils/ocupacaoStatus.ts` é o que é de
+fato da tela, o mapa de cores.
 
-**A decidir:** qual corte vale? O do motor veio do briefing da Fase 2 e nunca
-foi conferido contra a planilha; o da tela veio do DP-2. Decidido isso, uma das
-duas some.
+Um teste percorre dez valores comparando as duas funções, de modo que elas não
+têm como voltar a divergir em silêncio.
+
+**Segue em aberto:** o corte de 0,75 vem do DP-2 e, como o de 0,85 antes dele,
+nunca foi conferido contra a planilha. O de 1,00 é natural — ocupação acima de
+100% é sobrecarga.
 
 ### D-19. Os números da prévia no frame 4B não fecham entre si
 
@@ -197,7 +204,7 @@ São diferenças pequenas, mas mudá-las alteraria as telas já aprovadas do DP-
 | Entregável | Resultado |
 | --- | --- |
 | `npm run build` (inclui `tsc -b`) | ✅ sem erros de tipo |
-| `npm test` | ✅ **58 passando** (49 anteriores + 9 da P2) |
+| `npm test` | ✅ **59 passando** (49 anteriores + 9 da P2 + 1 que trava a D-18) |
 | `npm run lint` | ✅ oxlint sem apontamentos |
 | Os 49 testes anteriores | ✅ nenhum foi alterado |
 | Telas conferidas contra os frames DP-2 | ✅ capturadas em `localhost` |
@@ -208,7 +215,7 @@ São diferenças pequenas, mas mudá-las alteraria as telas já aprovadas do DP-
 
 | Pendência | De quem | Observação |
 | --- | --- | --- |
-| Decidir D-18 (cortes de ocupação) | responsável do projeto | Hoje há duas verdades |
+| Conferir o corte de 0,75 contra a planilha | professor / planilha | O valor veio do DP-2; a faixa `ok`/`atencao` nunca foi verificada na fonte |
 | Decidir os valores do DP-2 contra os do DP-1 | responsável do projeto | Lista acima |
 | Validação de cenário e de atividade incoerentes | Fase 5 | Continua adiada; agora há mais o que validar (código de atividade repetido, tempo zero) |
 | `logos/eng-producao.png` com 1,03 MB | responsável do projeto | Segue sendo o maior arquivo do build |

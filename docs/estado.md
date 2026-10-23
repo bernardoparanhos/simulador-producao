@@ -77,10 +77,12 @@ porque o fluxograma da planilha estava vazio).
 | D-13, D-4 | A inspeção está toda inerte: três parâmetros preenchidos, nenhum afeta número | [fase-2.md](fases/fase-2.md) |
 | D-14 | Unidade dos campos de inspeção: `%` inteiro ou fração? | [fase-2.md](fases/fase-2.md) |
 | D-7 | Falta renomear `producaoRealizadaDiaria`, que ficou com o sufixo antigo | [fase-2.md](fases/fase-2.md) |
-| D-18 | Duas classificações de ocupação com cortes diferentes: 0,75 na tela (DP-2) e 0,85 no motor (Fase 2) | [fase-4.md](fases/fase-4.md) |
+| Corte de ocupação | O corte `ok`/`atencao` de 0,75 veio do DP-2 e nunca foi conferido contra a planilha | [fase-4.md](fases/fase-4.md) |
 | DP-1 × DP-2 | O guia do DP-2 repete cores, bordas e altura de header diferentes das aprovadas no DP-1. Mantidos os do DP-1 | [fase-4.md](fases/fase-4.md) |
 
 Resolvidas depois da Fase 3: **D-16** (a conversão de segundos para minutos
 ficou na fronteira `cenarioDoFormulario`) e **D-17** (o rótulo da demanda
-acompanha a periodicidade escolhida). **D-19** é um arredondamento do mock de
-design, não uma decisão pendente — ver [fase-4.md](fases/fase-4.md).
+acompanha a periodicidade escolhida). Depois da Fase 4: **D-18** (os dois
+cortes de ocupação foram alinhados em 0,75, e a função da tela passou a delegar
+para a do motor — há uma implementação só). **D-19** é um arredondamento do mock
+de design, não uma decisão pendente — ver [fase-4.md](fases/fase-4.md).

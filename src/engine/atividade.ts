@@ -27,34 +27,38 @@ export type ResultadoAtividadeIsolada = Omit<
   'producaoRealizadaDiaria' | 'estoqueFinal' | 'ehGargalo'
 >
 
-/** Limite de ocupação a partir do qual o status deixa de ser `'ok'`. */
-const LIMITE_ATENCAO = 0.85
+/** Até aqui a ocupação é folga confortável. */
+const LIMITE_OK = 0.75
 
 /** Limite de ocupação a partir do qual a atividade está `'acima'` do aceitável. */
 const LIMITE_ACIMA = 1
 
 /**
- * Classifica a ocupação de uma atividade para leitura rápida na tela.
+ * Classifica a ocupação de uma atividade.
  *
  * ```text
- * ocupacao <  0,85  -> 'ok'
+ * ocupacao <= 0,75  -> 'ok'
  * ocupacao <  1,00  -> 'atencao'
  * ocupacao >= 1,00  -> 'acima'
  * ```
  *
- * As três faixas aparecem no cenário do robô: a atividade `'124'` fica em
- * `'ok'` (0,83), a `'221'` em `'atencao'` (0,98) e a `'112'`, o gargalo, em
+ * As três faixas aparecem no cenário do robô: a atividade `'133'` fica em
+ * `'ok'` (0,56), a `'221'` em `'atencao'` (0,98) e a `'112'`, o gargalo, em
  * `'acima'` (1,15).
  *
- * TODO(Fase 5): os cortes 0,85 e 1,00 vêm do briefing da Fase 2 e ainda não
- * foram confirmados contra a planilha. O de 1,00 é natural (ocupação acima de
- * 100% é sobrecarga); o de 0,85 é convenção.
+ * **Esta é a única classificação do projeto.** A tela importa
+ * `getStatusOcupacao` de `src/utils/ocupacaoStatus.ts`, que delega para cá —
+ * até a Fase 4 havia duas implementações com cortes diferentes, 0,85 aqui e
+ * 0,75 na tela (divergência D-18, resolvida a favor de 0,75).
+ *
+ * TODO(Fase 5): o corte de 0,75 vem do DP-2 e ainda não foi confirmado contra
+ * a planilha. O de 1,00 é natural — ocupação acima de 100% é sobrecarga.
  *
  * @param ocupacao Ocupação da atividade, fração em que 1 é 100%.
  * @returns A faixa em que a ocupação cai.
  */
 export function classificarOcupacao(ocupacao: number): StatusOcupacao {
-  if (ocupacao < LIMITE_ATENCAO) return 'ok'
+  if (ocupacao <= LIMITE_OK) return 'ok'
   if (ocupacao < LIMITE_ACIMA) return 'atencao'
   return 'acima'
 }

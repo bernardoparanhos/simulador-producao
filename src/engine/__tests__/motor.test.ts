@@ -25,6 +25,7 @@ import {
 } from '@/engine'
 import { atividadesExemplo, cenarioExemplo, exemplo, sequenciaExemplo } from '@/fixtures'
 import type { Atividade, ResultadoPorAtividade } from '@/types'
+import { getStatusOcupacao } from '@/utils/ocupacaoStatus'
 
 /** Precisão usada nas comparações de ponto flutuante: nove casas decimais. */
 const CASAS = 9
@@ -194,19 +195,30 @@ describe('inspeção', () => {
 })
 
 describe('classificarOcupacao', () => {
-  it('classifica abaixo de 0,85 como ok', () => {
+  it('classifica até 0,75 inclusive como ok', () => {
     expect(classificarOcupacao(0)).toBe('ok')
-    expect(classificarOcupacao(0.8499)).toBe('ok')
+    expect(classificarOcupacao(0.7499)).toBe('ok')
+    expect(classificarOcupacao(0.75)).toBe('ok')
   })
 
-  it('classifica de 0,85 a menos de 1,00 como atenção', () => {
-    expect(classificarOcupacao(0.85)).toBe('atencao')
+  it('classifica acima de 0,75 e abaixo de 1,00 como atenção', () => {
+    expect(classificarOcupacao(0.7501)).toBe('atencao')
+    // O corte antigo era 0,85: este valor saía 'ok' até a Fase 4 (D-18).
+    expect(classificarOcupacao(0.8)).toBe('atencao')
     expect(classificarOcupacao(0.9999)).toBe('atencao')
   })
 
   it('classifica de 1,00 para cima como acima', () => {
     expect(classificarOcupacao(1)).toBe('acima')
     expect(classificarOcupacao(1.4)).toBe('acima')
+  })
+
+  it('a função da tela devolve exatamente o mesmo que a do motor (D-18)', () => {
+    // Trava a resolução da D-18: a tela delega para o motor, então não há como
+    // os dois cortes voltarem a divergir sem este teste falhar.
+    for (const ocupacao of [0, 0.5, 0.75, 0.7501, 0.8, 0.85, 0.9999, 1, 1.15324, 2]) {
+      expect(getStatusOcupacao(ocupacao)).toBe(classificarOcupacao(ocupacao))
+    }
   })
 })
 

@@ -144,8 +144,9 @@ premissa documentada.
   traz com duas casas.
 - **`motor.test.ts` — 40 testes.** O que a planilha não cobre: as três
   periodicidades, o afunilamento pelo mínimo, a propagação por toda a cadeia,
-  tolerância a ciclo e a conexões órfãs, os limites exatos das faixas (0,85 e
-  1,00), bordas (lista vazia, atividade sozinha) e a pureza da função. Inclui um
+  tolerância a ciclo e a conexões órfãs, os limites exatos das faixas (0,75 e
+  1,00, alinhados na Fase 4 — ver D-18), bordas (lista vazia, atividade
+  sozinha) e a pureza da função. Inclui um
   teste provando que **mudar o fluxo muda os números** — o ponto do projeto — e
   três testes que travam as divergências (D-1, D-11, D-13), de modo que mudar
   qualquer uma exige mudar um teste de propósito.
@@ -361,7 +362,7 @@ cálculo nenhum.
 
 | TODO | Fase | O que é |
 | --- | --- | --- |
-| Faixas de `statusOcupacao` | 5 | 0,85 e 1,00 vêm do briefing; o corte de 1,00 é natural, o de 0,85 é convenção |
+| Faixas de `statusOcupacao` | 5 | 0,75 e 1,00; o corte de 1,00 é natural, o de 0,75 vem do DP-2 e não foi conferido contra a planilha |
 | `leadTimeMin` de verdade | 5 | Caminho mais longo no grafo, em vez de apelido |
 | `ocupacaoMedia` separada da eficiência | 5 | Hoje o mesmo valor |
 | `wipPecas` de verdade | 5 | A fórmula atual é constante (D-8) |
