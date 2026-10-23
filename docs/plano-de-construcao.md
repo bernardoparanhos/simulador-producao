@@ -6,6 +6,30 @@ Oct 23, 2026 · @Bernardo
 
 Mapa do projeto, do início ao fim, com as paradas de teste. É daqui que saem os prompts para o Claude Code desenvolver.
 
+## Estado da construção
+
+Atualizado em 2026-10-23. Esta seção é o registro de andamento; o restante do
+documento é o plano, e não muda por causa do progresso.
+
+| Fase | Estado | Registro |
+| --- | --- | --- |
+| 0 — Fundação e decisões | concluída | [fase-0.md](fases/fase-0.md) |
+| 1 — Coleta e identidade | **modelo de dados concluído**; assets institucionais pendentes (serão fornecidos) | [fase-1.md](fases/fase-1.md) |
+| 2 — Motor de cálculo | não iniciada (aguardando aprovação da Fase 1) | — |
+| 3 a 8 | não iniciadas | — |
+
+Documentos de referência produzidos até aqui:
+
+- [modelo-de-dados.md](modelo-de-dados.md) — as entidades, os campos, as
+  unidades e o mapeamento contra as abas da planilha. É a referência de entrada
+  e saída do motor de cálculo.
+- [decisoes/0001-escolha-da-stack.md](decisoes/0001-escolha-da-stack.md)
+- [decisoes/0002-representacao-da-sequencia.md](decisoes/0002-representacao-da-sequencia.md)
+  — como a sequência de atividades foi representada (grafo dirigido) e por quê.
+
+Perguntas abertas que valem decidir antes de a Fase 2 congelar as unidades
+estão no fim de [modelo-de-dados.md](modelo-de-dados.md).
+
 ## Objetivo e norte
 
 Construir um sistema web que faz o que a planilha Simulador de Produção do prof. Edson faz, só que mais claro e objetivo, e que funciona tão bem quanto ela. Não é só uma cópia da planilha: é um simulador de processos de verdade, genérico e testável, que a pessoa consegue usar sem depender de dados reais.

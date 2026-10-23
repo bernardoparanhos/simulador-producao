@@ -8,9 +8,11 @@ existe como planilha Excel. A melhoria central em relação à planilha é um
 **construtor visual de sequência de atividades**: o usuário monta a sequência
 na tela e é essa sequência que dirige o cálculo.
 
-> **Estado atual: Fase 0 (fundação) concluída.** A página inicial é um
-> placeholder institucional. Nenhuma funcionalidade de simulação foi
-> implementada ainda.
+> **Estado atual: Fase 1 concluída na parte de modelo de dados.** O modelo de
+> dados está definido em [`src/types/`](src/types/) e documentado em
+> [`docs/modelo-de-dados.md`](docs/modelo-de-dados.md). A página inicial segue
+> um placeholder institucional, e os arquivos de identidade (logos, capa) ainda
+> não chegaram. Nenhum cálculo implementado — o motor é a Fase 2.
 
 ## Fonte de verdade
 
@@ -18,6 +20,10 @@ O escopo do projeto está em **[`docs/plano-de-construcao.md`](docs/plano-de-con
 — o mapa das 9 fases, o caminho dos dados e as paradas de teste. Em caso de
 divergência entre o código e o plano, o plano está certo até ser alterado
 explicitamente.
+
+O modelo de dados que atravessa o sistema está em
+**[`docs/modelo-de-dados.md`](docs/modelo-de-dados.md)** — campos, unidades,
+decisões e o mapeamento contra as abas da planilha original.
 
 ## Como rodar
 
@@ -57,16 +63,17 @@ O porquê de cada escolha está em
 simulador-producao/
 ├── docs/
 │   ├── plano-de-construcao.md   # fonte de verdade: as 9 fases
+│   ├── modelo-de-dados.md       # as entidades, os campos e as unidades
 │   ├── decisoes/                # registro de decisões, numerado
 │   └── fases/                   # log de execução, um por fase
 ├── public/                      # arquivos servidos com URL fixa (favicon)
 └── src/
     ├── engine/                  # motor de cálculo: TS puro, sem React
-    ├── types/                   # modelo de dados compartilhado
+    ├── types/                   # modelo de dados: um arquivo por entidade
     ├── components/              # componentes de UI reutilizáveis
     ├── pages/                   # telas
     ├── fixtures/                # cenários de exemplo prontos
-    ├── assets/                  # identidade institucional (logos, capas)
+    ├── assets/                  # identidade institucional (logos/, capas/)
     ├── App.tsx                  # raiz da aplicação
     ├── main.tsx                 # ponto de entrada
     └── index.css                # Tailwind + tokens de identidade visual
@@ -79,6 +86,10 @@ Duas regras de estrutura que valem para todo o projeto:
    isoladamente e auditável contra a planilha original.
 2. **Imports usam o alias `@/`**, que aponta para `src/`. Prefira
    `import { x } from '@/engine'` a `../../../engine`.
+3. **`src/types/` só tem formas de dados.** Sem lógica, sem fórmulas, sem
+   `enum` (o projeto usa `erasableSyntaxOnly`): uniões de literais no lugar.
+   Cada campo leva JSDoc com a unidade. Importe pelo barril — `@/types` —, não
+   pelos arquivos internos.
 
 ## Como contribuir
 
@@ -101,7 +112,10 @@ Duas regras de estrutura que valem para todo o projeto:
 
 1. Leia `docs/plano-de-construcao.md` e o log da fase anterior antes de
    começar.
-2. Trabalhe em um branch por fase (ex.: `fase-1-modelo-de-dados`).
+2. O projeto tem um só responsável e cada push na `main` republica o site, então
+   as fases são commitadas direto na `main`. Use um branch quando a mudança
+   precisar ser revisada antes de entrar no ar — a Vercel gera uma URL de
+   pré-visualização por branch.
 3. Antes de commitar: `npm run lint` e `npm run build` precisam passar.
 4. Commits em português, no imperativo e descrevendo o efeito
    (ex.: `adiciona modelo de dados das atividades`).
